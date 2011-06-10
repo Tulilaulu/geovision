@@ -1,0 +1,91 @@
+{% extends "sitebase.html" %}
+
+{% block additional_head %}
+
+<!-- JIT Library File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}RGraph.js"></script>
+
+<!-- JSON File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}json_file.js"></script>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}base.css" type="text/css"/>
+
+<!-- Example File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}graphviz.js"></script>
+{% endblock %}
+
+{% block additional_title %}- graph {% endblock %}
+<!--[if IE]><script language="javascript" type="text/javascript" src="../../Extras/excanvas.js"></script><![endif]-->
+{% block sidenavi_content %}
+
+<p>TESTDATA!!!</p>
+<table id="registerform">
+                <tr>
+                    <td><p>Username: </p></td>
+                    <td><input size="10" type="text" name="username" /></td>
+                </tr>
+                <tr>
+                    <td><p>Email: </p></td>
+                    <td><input size="10" type="text" name="email" /></td>
+                </tr>
+                <tr>
+                    <td><p>First name: </p></td>
+                    <td><input size="10" type="text" name="firstname" /></td>
+                </tr>
+                <tr>
+                    <td><p>Last name: </p></td>
+                    <td><input size="10" type="text" name="lastname" /></td>
+                </tr>
+                <tr>
+                    <td><p>Password: </p></td>
+                    <td><input size="10" type="password" name="password1" /></td>
+                </tr>
+                <tr>
+                    <td><p>Password again: </p></td>
+                    <td><input size="10" type="password" name="password2" /></td>
+                </tr>
+            </table>
+            <input id="register" type="submit" value="Register" size="10"/><br/>
+
+
+{% endblock %}
+{% block content %}
+<body onload="init();">
+<div id="container">
+
+<!--
+<div id="left-container">
+
+
+
+<div class="text">
+<h4>
+Graph animation
+
+
+</h4> 
+    This is a test data visualization. Data is constructed of real django models.
+</div>
+
+<div id="id-list"></div>
+
+
+<div style="text-align:center;"><a href="{{ STATIC_URL }}graphviz.js">See the Example Code</a></div>            
+</div>
+-->
+
+<div id="center-container">
+    <div id="infovis"></div>    
+</div>
+
+<div id="right-container">
+
+<div id="inner-details"></div>
+
+</div>
+
+<div id="log"></div>
+</div>
+</body>
+{% endblock %}
+
