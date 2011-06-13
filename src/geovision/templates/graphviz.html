@@ -1,0 +1,68 @@
+{% extends "sitebase.html" %}
+
+{% block additional_head %}
+
+<!-- JIT Library File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}RGraph.js"></script>
+
+<!-- JSON File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}json_file.js"></script>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}base.css" type="text/css"/>
+
+<!-- Example File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}graphviz.js"></script>
+{% endblock %}
+
+{% block additional_title %}- graph {% endblock %}
+<!--[if IE]><script language="javascript" type="text/javascript" src="../../Extras/excanvas.js"></script><![endif]-->
+{% block sidenavi_content %}
+
+<p>TESTDATA!!!</p>
+<h1>Some option-stuff here</h1>
+<h2>option-stuff here</h2>
+<h3>More option-stuff here</h3>
+<input id="register" type="submit" value="Refresh" size="10"/><br/>
+
+
+{% endblock %}
+{% block content %}
+<body onload="init();">
+<div id="container">
+
+<!--
+<div id="left-container">
+
+
+
+<div class="text">
+<h4>
+Graph animation
+
+
+</h4> 
+    This is a test data visualization. Data is constructed of real django models.
+</div>
+
+<div id="id-list"></div>
+
+
+<div style="text-align:center;"><a href="{{ STATIC_URL }}graphviz.js">See the Example Code</a></div>            
+</div>
+-->
+
+<div id="center-container">
+    <div id="infovis"></div>    
+</div>
+
+<div id="right-container">
+
+<div id="inner-details"></div>
+
+</div>
+
+<div id="log"></div>
+</div>
+</body>
+{% endblock %}
+
