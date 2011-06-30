@@ -1,23 +1,26 @@
 from decimal import *
-import unittest
+from django.utils import unittest
 
-from geovision.settings import TEST_FILE_PATH
+from geovision.settings import TEST_FILE_PATH, RUNNING_ON_USERS
 from geovision.text_to_db.blast_parser import create_blast
 from geovision.viz.models import Blast
 from geovision.viz.models import DbEntry
 from geovision.viz.models import Read
 from nose.tools import raises
+#from nose.plugins.skip.Skip import SkipTest
 
+@unittest.skipUnless(RUNNING_ON_USERS, "Blast parser tests require a PostgreSQL database")
 class BlastParserTests(unittest.TestCase):
-	
+
 	@classmethod
 	def setUpClass(cls):
-
-		file = open(TEST_FILE_PATH + "test_blast.txt")
+		if not RUNNING_ON_USERS:
+			return
 		#in case objects left from other tests..
 		DbEntry.objects.all().delete()
 		Read.objects.all().delete()
-	
+
+		file = open(TEST_FILE_PATH + "test_blast.txt")	
 		cls.read = Read.objects.create(sample="ABLU", read_id="gi|185682811|gb|ABLU01132423.1|", description="baz", data='ASD')
 		cls.strings = []
 		#creating db_entrys for all lines in test file
@@ -30,6 +33,8 @@ class BlastParserTests(unittest.TestCase):
 		create_blast(cls.dbe[0].source_file, cls.read.sample, TEST_FILE_PATH + "test_blast.txt")
 
 	def test_parse_blast(self):
+		
+
 		results = Blast.objects.all()
 		for i in range(len(results)):
 			self.assertEqual(results[i].read, self.read)
@@ -47,13 +52,13 @@ class BlastParserTests(unittest.TestCase):
 			self.assertEqual(results[i].bitscore, float(self.strings[i][11]))
 
 
-	@raises(Read.DoesNotExist)
-	def testNonexistentRead(self):
-		create_blast('SMPL', 'FOODB', "test_blast.txt")
+#	@raises(Read.DoesNotExist)
+#	def testNonexistentRead(self):
+#		create_blast('SMPL', 'FOODB', TEST_FILE_PATH + "test_blast.txt")
 
-	@raises(DbEntry.DoesNotExist)
-	def testNonexistentDbEntry(self):
-		create_blast('SMPL', 'FOODB', "test_blast.txt")
+#	@raises(DbEntry.DoesNotExist)
+#	def testNonexistentDbEntry(self):
+#		create_blast('SMPL', 'FOODB', TEST_FILE_PATH + "test_blast.txt")
 
 if __name__ == '__main__':
 	unittest.main()

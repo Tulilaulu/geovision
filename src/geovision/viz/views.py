@@ -1,4 +1,3 @@
-# Create your views here.
 from geovision.text_to_db.create_JSON import create_json
 from django.http import HttpResponse
 from django.template import Context, loader
