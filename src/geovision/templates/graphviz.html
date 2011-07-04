@@ -1,0 +1,109 @@
+{% extends "sitebase.html" %}
+
+{% block additional_head %}
+
+<!-- JIT Library File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}RGraph.js"></script>
+
+
+<script language="javascript" type="text/javascript">
+	var staticurl = "{{ STATIC_URL }}";
+</script>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}base.css" type="text/css"/>
+<link type="text/css" href="{{ STATIC_URL }}ui-lightness/jquery-ui.css" rel="stylesheet" />	
+
+<!-- Example File -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}graphviz.js"></script>
+
+<!-- JSON File -->
+{% if json_base_url %}
+<script language="javascript" type="text/javascript">
+	var json_base_url = "{{ json_base_url|safe }}";
+ 	$.getJSON(json_base_url + "&{{ json_query_url_part|safe }}", function(data) { initGraph(data); });
+</script>
+{% endif %}
+<!-- jQuery-UI, for autocomplete -->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}jquery-ui.js"></script>
+
+{% endblock %}
+
+{% block additional_title %}- graph {% endblock %}
+<!--[if IE]><script language="javascript" type="text/javascript" src="../../Extras/excanvas.js"></script><![endif]-->
+{% block sidenavi_content %}
+
+{% if error_message or not json_base_url %}
+	<script language="javascript" type="text/javascript">openSearch($('#graphnavi'));</script>
+	<div class="error" id="error">{{ error_message }}</div>
+{% else %}
+	<div class="error" id="error"></div>
+{% endif %}
+
+
+<form id="graphrefreshform" action="graphrefresh" method="post">{% csrf_token %} <!--protects from cross site request forgery-->
+    <p>Input only one of the three following:</p>
+    <label>Enzyme</label>
+    <input size="10" type="text" name="ecnumber" id="ec" value="{{ ecnumber }}"/><br/><br/>
+	{% if enzyme_list %}
+	Multiple enzymes matched, pick one:
+	{% for e in enzyme_list %}
+	<p class="submitForm" id='{{ e.ec_number }}'>{{ e.enzyme_name }} ({{ e.ec_number }})</p>
+	{% endfor %}
+	{% endif %}
+    <label>Read id</label>
+    <input size="10" type="text" name="read" value="{{ read }}"/><br/><br/>
+    <label>DB entry id</label>
+    <input size="10" type="text" name="dbentry" value="{{ dbentry }}"/><br/><br/>
+    <label>Bitscore</label>
+    <input size="10" type="text" name="bitscore" value="{{ bitscore }}"/><br/><br/>
+    <label>E-value</label>
+    <input size="10" type="text" name="e-value" value="{{ evalue }}"/><br/><br/>
+    <label>Depth</label>
+    <input size="10" type="text" name="depth" value="{{ depth }}"/><br/><br/>
+    <label>Hits</label>
+    <input size="10" type="text" name="hits" value="{{ hits }}" /><br/><br/>
+    <input id="graphrefresh" type="submit" value="Refresh page" size="10"/><br/>
+</form>
+
+<script language="javascript" type="text/javascript">
+	$(function()
+	{
+		$( "#ec" ).autocomplete(
+		{
+			source: '/autocomplete'
+		});
+	});
+</script>
+
+{% endblock %}
+{% block content %}
+<body onload="init();">
+    <div id="loader"><img src="../static/images/loader.gif" alt="Loading..."/></div>
+
+	<div id="container">		
+		<div id="graphcontainer">
+			<div id="left-container">
+			<div class="text">
+				Right click on an edge to show alignment of read sequence and database sequence (upper is read). The data opens under the graph and only one alignment can be visible at the same time.
+			<!--<div id="id-list"></div>
+			<div style="text-align:center;"><a href="{{ STATIC_URL }}graphviz.js">See the Example Code</a></div>            
+			--></div>
+			
+			</div>
+			<div id="center-container">
+				<div id="infovis"></div>
+			</div>
+
+			<div id="right-container">
+
+				<div id="inner-details"></div>
+
+			</div>
+
+			<div id="log"></div>
+		</div>
+		<div id="alignment"></div>
+	</div>
+</body>
+{% endblock %}
+
