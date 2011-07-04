@@ -1,0 +1,10 @@
+\.orig$
+\.orig\..*$
+\.chg\..*$
+\.rej$
+\.conflict\~$
+\.pyc$
+\.fasta$
+\.sqlite$
+json_file.js$
+hotshot.prof$
