@@ -2033,15 +2033,15 @@ Extras.Classes.Events = new Class({
      this.config.onDragMove(this.pressed, event, evt);
      return;
    }
-   if(this.dom) {
-	   //original is commented out:
-     this.config.onMouseMove(this.hovered,
-         event, evt);
-   } else {
+//   if(this.dom) {
+//	   //original is commented out:
+//     this.config.onMouseMove(this.hovered,
+//         event, evt);
+//   } else {
      if(this.hovered) {
        var hn = this.hovered;
        var geom = hn.nodeFrom? this.etypes[hn.getData('type')] : this.ntypes[hn.getData('type')];
-       var contains = geom && geom.contains 
+       var contains = geom && geom.contains
          && geom.contains.call(this.fx, hn, event.getPos());
        if(contains) {
          this.config.onMouseMove(hn, event, evt);
@@ -2056,7 +2056,7 @@ Extras.Classes.Events = new Class({
      } else {
        this.config.onMouseMove(false, event, evt);
      }
-   }
+   //}
   },
   
   onMouseWheel: function(e, win, delta) {
