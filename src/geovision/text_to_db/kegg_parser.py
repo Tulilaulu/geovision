@@ -1,7 +1,7 @@
 from geovision.text_to_db.bulk_inserter import *
-from geovision.viz.models import EnzymeName
+from viz.models import Pathway
 
-class enzyme_parser:
+class KeggParser:
 	def __init__(self, filehandle, fields):
 		self.filehandle = filehandle
 		self.fields = fields
@@ -28,23 +28,16 @@ class enzyme_parser:
 				cur_valuelist.append(value)
 		return None
 
-def run(args):
-	import sys
-	ep = enzyme_parser(open(args[1], 'r'), ['ENTRY', 'NAME'])
-	inserter = BulkInserter(EnzymeName)
-
-	while True:
-		entry =  ep.get_entry()
-		if not entry: break
-		ecnum = entry['ENTRY'][0][3:13].strip()
-		try:
-			for name in entry['NAME']:
-				inserter.save(EnzymeName(ec_number=ecnum, enzyme_name=name))
-		except KeyError:
-#			print('Warning, no names for EC %s' % (ecnum,))
-			pass
-
-	inserter.close()
-
-if __name__ == '__main__':
-	run(sys.argv)
+def get_pathways(entry):
+	i = 0
+	elems = []
+	while i < len(entry):
+		pw = entry[i]
+		while i+1 < len(entry) and entry[i+1].startswith(' '):
+			pw += ' ' + entry[i+1].lstrip()
+			i += 1
+		(id, name) = pw.split(None, 1)
+		elems.append(Pathway.objects.get_or_create(id=id, name=name)[0])
+		i += 1
+	return elems
+		

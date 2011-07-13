@@ -25,24 +25,6 @@ var Log = {
   }
 };
 
-function dot(u, v)
-{
-	return u.x * v.x + u.y * v.y;
-}
-function add(u, v)
-{
-	return {'x': u.x + v.x, 'y': u.y + v.y}
-
-}
-function sub(u, v)
-{
-	return {'x': u.x - v.x, 'y': u.y - v.y}
-}
-function mul(k, v)
-{
-	return {'x': k * v.x, 'y': k * v.y};
-}
-
 dotLineLength = function( x, y, x0, y0, x1, y1, o ){
 	function lineLength( x, y, x0, y0 ){
 		return Math.sqrt( ( x -= x0 ) * x + ( y -= y0 ) * y );
@@ -62,21 +44,89 @@ dotLineLength = function( x, y, x0, y0, x1, y1, o ){
 	}
 };
 
+$jit.RGraph.Plot.NodeTypes.implement({
+    'customCircle': {
+      'render': function(node, canvas){
+          var pos = node.pos.getc(),
+              radius = node.getData('dim');
+          var ctx = canvas.getCtx();
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2, true);
+          ctx.closePath();
+          ctx.fill();
+
+          if(node.traversalTag)
+          {
+	          ctx.fillStyle = '#ffffff';
+	          ctx.beginPath();
+	          ctx.arc(pos.x, pos.y, radius/2, 0, Math.PI * 2, true);
+	          ctx.closePath();
+	          ctx.fill();
+          }
+
+
+        },
+        'contains': function(node, pos){
+          var npos = node.pos.getc(true),
+              radius = node.getData('dim');
+          var diffx = npos.x - pos.x,
+              diffy = npos.y - pos.y,
+              diff = diffx * diffx + diffy * diffy;
+          return diff <= radius * radius;
+        }
+    }
+});
+
 $jit.RGraph.Plot.EdgeTypes.implement({  
 	'customArrow':{
 	    'render': function(adj, canvas) {
-            var from = adj.nodeFrom.pos.getc(true),
-                to = adj.nodeTo.pos.getc(true),
+            var from = adj.nodeFrom.pos.getc(),
+                to = adj.nodeTo.pos.getc(),
                 dim = adj.getData('dim'),
                 direction = adj.data.$direction,
-                inv = (direction && direction.length>1 && direction[0] != adj.nodeFrom.id);
-            this.edgeHelper.arrow.render(from, to, dim, inv, canvas);
+//                swap = (direction && direction.length>1 && direction[0] != adj.nodeFrom.id);
+                swap = false; // XXX - may cause bugs
+
+            var ctx = canvas.getCtx();
+            Complex = $jit.Complex;
+            // invert edge direction
+            if (swap) {
+              var tmp = from;
+              from = to;
+              to = tmp;
+            }
+            var vect = new Complex(to.x - from.x, to.y - from.y);
+	    var norm = vect.norm();
+            to.$add(vect.scale(-adj.nodeTo.getData("dim") / norm));
+            from.$add(vect.$scale(adj.nodeFrom.getData("dim") / norm));
+            vect = new Complex(to.x - from.x, to.y - from.y);
+
+            vect.$scale(dim / vect.norm());
+            var intermediatePoint = new Complex(to.x - vect.x, to.y - vect.y),
+                normal = new Complex(-vect.y / 2, vect.x / 2),
+                v1 = intermediatePoint.add(normal), 
+                vM = intermediatePoint.clone();
+                v2 = intermediatePoint.$add(normal.$scale(-1));
+            
+            ctx.beginPath();
+	    if(from.x != from.x) return;
+            ctx.moveTo(from.x, from.y);
+            ctx.lineTo(vM.x, vM.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(v1.x, v1.y);
+            ctx.lineTo(v2.x, v2.y);
+            ctx.lineTo(to.x, to.y);
+            ctx.closePath();
+            ctx.fill();
+
         },
         'contains': function(adj, pos) {
             var from = adj.nodeFrom.pos.getc(true),
 		        to = adj.nodeTo.pos.getc(true);
             var lineWidth = adj.getData('epsilon');
             var d = lineWidth/2;
+
             var minX = Math.min(from.x, to.x) - d, maxX = Math.max(from.x, to.x) + d;
             var minY = Math.min(from.y, to.y) - d, maxY = Math.max(from.y, to.y) + d;
             if(pos.x < minX || pos.x > maxX || pos.y < minY || pos.y > maxY)
@@ -86,23 +136,71 @@ $jit.RGraph.Plot.EdgeTypes.implement({
     }
 });  
 
+var currentNode;
+var currentEdge;
+var ctxMenuOpen;
+
+function hideCtxMenu()
+{
+	ctxMenuOpen = false;
+	busy = false;
+	rgraph.config.Events.onMouseLeave(currentNode || currentEdge); // XXX does this work completely?
+	currentEdge = currentNode = false;
+	rgraph.config.Navigation.panning = true;
+	rgraph.config.Tips.enable = true;
+	rgraph.events.pressed = undefined;
+}
+
 function init(){
 	//init data
 	jQuery('#loader').fadeOut();//loader fadeaway
+
+	$('#infovis').contextMenu('nodeMenu', {
+		'bindings': {
+			'close': function() { },
+			'e_align': function() { alignmentfunction(currentEdge.data.id); },
+			'n_tag': function() { currentNode.traversalTag = true; console.log(currentNode.traversalTag); }
+
+		},
+		'onContextMenu': function(event)
+		{
+			return currentNode || currentEdge;
+		},
+		'onShowMenu': function(evt, menu)
+		{
+			ctxMenuOpen = true;
+			rgraph.config.Navigation.panning = false;
+			rgraph.config.Tips.enable = false;
+			rgraph.tips.hide();
+
+			if(!currentEdge)
+				$('li[id^=e_]', menu).remove();
+			if(!currentNode)
+				$('li[id^=n_]', menu).remove();
+
+			return menu;
+		},
+		'onHideMenu': hideCtxMenu
+	});
+		
 }
 
 function prepareJSON(json)
 {
 	for (i in json)
 	{
-//		if(json[i].data.type == "enzyme")
-//			json[i].data.$color = '#0000FF';
+		var data = json[i].data;
+		if(data.type == "enzyme")
+			data.$color = '#0000FF';
+		else if (data.type == "dbentry")
+			data.$color = '#00FF00';
 	}
 	return json;
 }
 
 var rgraph;
 var busy = false;
+
 function initGraph(json)
 {
 	if(json.error_message)
@@ -140,7 +238,7 @@ function initGraph(json)
 		Navigation:
 		{
 		  enable: true,
-		  panning: true,
+		  panning: 'avoid nodes',
 		  zooming: 25
 		},
 		
@@ -150,11 +248,11 @@ function initGraph(json)
 			overridable: true,
 			color: '#ff0000',
 			alpha: 0.6,
-			dim: 5.0,
+			dim: 7.0,
 			lineWidth: 0.5,
 			angularWidth: 1,
 			span:1,
-			type: 'circle',
+			type: 'customCircle',
 			CanvasStyles: {}
 		},
 		
@@ -163,10 +261,12 @@ function initGraph(json)
 			overridable: true,
 			color: '#888800',
 			alpha: 0.6,
-			lineWidth:1.5,
 			type: 'customArrow',
-			epsilon: 5.0,
+
+			lineWidth:1.5,
+			lineWidth_hover: 5.0,
 			dim: 10,
+			dim_hover: 15
 		},
 
 		Events:
@@ -177,21 +277,24 @@ function initGraph(json)
 
 			onRightClick : function(node, eventInfo, e)
 			{
+//				console.log('onRightClick shouldnt happen');
+				return;
 				if (node.nodeFrom)
 				{
 					alignmentfunction(node.data.id);
 				}
-                else 
-                {
-                    rgraph.op.tagForTraversal(node);
-                    console.log(node.id + " tagged");
-                }
+				else 
+				{
+					node.traversalTag = true;
+					console.log(node.traversalTag);
+				}
 			},
 
 			onClick: function(node, opt)
 			{
 				if(!node || node.nodeFrom)
 					return;
+
 				if(busy)
 					return;
 				numSubnodes = $jit.Graph.Util.getSubnodes(node).length;
@@ -201,15 +304,7 @@ function initGraph(json)
 					$.getJSON(json_base_url + '&depth=1&' + node.data.type + '=' + node.name,
 						function(newdata)
 						{
-							rgraph.op.sum(prepareJSON(newdata), 
-								{ type: 'fade:con'
-								, fps:30
-								, duration: 500
-								, hideLabels: false
-								, onMerge: colorEdges
-								, onComplete: function() { busy = false;}
-								}
-							)
+							rgraph.op.sum(prepareJSON(newdata), { type: 'fade:con', fps:30, duration: 500, hideLabels: false, onMerge: colorEdges, onComplete: function() { busy = false;}})
 						}
 					);
 				}
@@ -228,7 +323,7 @@ function initGraph(json)
                     else 
                     {
                         busy = 'contracting';
-                        rgraph.op.contractForTraversal(node, 
+                        rgraph.op.contract(node, 
                                 { type: 'animate', 
                                 duration: 1000, 
                                 hideLabels: true, 
@@ -239,11 +334,16 @@ function initGraph(json)
 			},
 
 			onMouseEnter: function(node, eventInfo, e)
-			{ 
+			{
+				if(ctxMenuOpen)
+					return;
 				if (node.nodeTo)
 				{
+					currentEdge = node;
+
 					rgraph.canvas.getElement().style.cursor = 'pointer';
-					node.data.$lineWidth = node.getData('epsilon');
+					node.data.$lineWidth = node.getData('lineWidth_hover');
+					node.data.$dim = node.getData('dim_hover');
 					
 					if(busy)
 						return;
@@ -255,6 +355,8 @@ function initGraph(json)
 				}
 				else if(node)
 				{
+					currentNode = node;
+
 					rgraph.canvas.getElement().style.cursor = 'pointer';
 					node.data.$dim = node.getData('dim') + 3;
 					
@@ -270,14 +372,17 @@ function initGraph(json)
 			},
 			onMouseLeave: function(object, eventInfo, e)
 			{
-				//rgraph.config.Tips.type = 'HTML';
+				if(ctxMenuOpen)
+					return;
+				currentNode = currentEdge = undefined;
 				if(!object) return;
 				if(object.nodeTo)
 				{
 					rgraph.canvas.getElement().style.cursor = '';
 					
 					object.data.$lineWidth = rgraph.config.Edge.lineWidth;
-					
+					object.data.$dim = rgraph.config.Edge.dim;
+
 					if(busy)
 						return;
 					rgraph.fx.animate(
@@ -316,11 +421,12 @@ function initGraph(json)
 		{
 			enable: true,
 			type: 'Native',
-			width: 30,
 			align: 'left',
 			
 			onShow: function(tip, node)
 			{
+				if(ctxMenuOpen)
+					return false;
 				tip.innerHTML = "";
 				if (!node) return;
 
@@ -344,6 +450,16 @@ function initGraph(json)
 				else
 				{
 					tip.innerHTML = "<b>" + node.id + "</b>";
+					$.getJSON('/enzyme_names', {id: thisid}, function (data) {
+						if(data == null)
+						{
+							return false;
+						}
+						for (name in data)
+						{
+							tip.innerHTML = tip.innerHTML + "<br/>" + name;
+						}
+					});
 				}
 			}
 		},
@@ -416,8 +532,7 @@ function initGraph(json)
 	$jit.id('inner-details').innerHTML += rgraph.graph.getNode(rgraph.root).data.description;
 	rgraph.refresh();
 	colorEdges();
-    rgraph.op.contractForTraversal = contractForTraversal;
-	rgraph.op.tagForTraversal = tagForTraversal;
+    rgraph.op.contract = contractForTraversal;
 }
 
 var alignmentopen = false;
@@ -431,8 +546,6 @@ function alignmentfunction(thisid) {
 				return false;
 			}
 			alignmentopen = true;
-/*			var part1 = $('<nobr>' + data.readseq + '</nobr>');
-			var part2 = $('<nobr>' + data.dbseq + '</nobr>');  */
 			var part1 = $('<nobr>');
 			var part2 = $('<nobr>');
 			for ( i = 0; i < data.readseq.length; i++){
@@ -445,18 +558,14 @@ function alignmentfunction(thisid) {
 					$('<br/><br/>').appendTo($('#alignment'));
 				}
 				if (data.readseq.charAt(i) === data.dbseq.charAt(i)){
-					part1 = part1.append(data.readseq.charAt(i));
-					part2 = part2.append(data.dbseq.charAt(i));
+					part1 = part1.append('<span>' + data.readseq.charAt(i) + '</span>');
+					part2 = part2.append('<span>' + data.dbseq.charAt(i) + '</span>');
 				}
 				else {
 					part1 = part1.append('<span class=\'aligndifference\'>' + data.readseq.charAt(i) + '</span>');
 					part2 = part2.append('<span class=\'aligndifference\'>' + data.dbseq.charAt(i) + '</span>');
 				}
 			}
-	/*		part1 = part1.append('</nobr>');
-			part2 = part2.append('</nobr>');
-			part1.css('display', 'none');
-			part2.css('display', 'none'); */
 			part1.appendTo($('#alignment'));
 			$('<br/>').appendTo($('#alignment'));
 			part2.appendTo($('#alignment'));
@@ -498,10 +607,12 @@ function colorEdges(){
 	minScore = 100000;
 	$jit.Graph.Util.eachNode(rgraph.graph, function(node) {
 		$jit.Graph.Util.eachAdjacency(node, function(adj) {
-			if(adj.data.bitscore > maxScore)
-				maxScore = adj.data.bitscore;
-			if(adj.data.bitscore < minScore)
-				minScore = adj.data.bitscore;
+			var bs = adj.data.bitscore;
+			if(!bs) return;
+			if(bs > maxScore)
+				maxScore = bs;
+			if(bs < minScore)
+				minScore = bs;
 		});
 	});
 	$jit.Graph.Util.eachNode(rgraph.graph, function(node) {
@@ -511,12 +622,12 @@ function colorEdges(){
 				grncol = Math.floor((1.0 * (adj.data.bitscore - minScore) / (maxScore - minScore)) * 255);
 				col = "#" + formatHex(255 - grncol) + formatHex(grncol) + "00";
 				adj.data.$color = col;
-				adj.data.color = col;
+				//adj.data.color = col;
 			}
 			else
 			{
 				adj.data.$color = '#0000ff';
-				adj.data.color = '#0000ff';
+				//adj.data.color = '#0000ff';
 			}
 		});
 	});
@@ -528,63 +639,42 @@ function colorEdges(){
  */
 
 function contractForTraversal(node, opt) {
-	console.log("contractForTraversal");
-	var viz = this.viz;
-	if(node.collapsed || !node.anySubnode($jit.util.lambda(true))) return;
-	opt = $jit.util.merge(this.options, viz.config, opt || {}, {
-		'modes': ['node-property:alpha:span', 'linear']
-	});
-	node.collapsed = true;
-	(function subn(n) {
-		n.eachSubnode(function(ch) {
-			if (!ch.traversalTag) {
-				ch.ignore = true;
-				ch.setData('alpha', 0, opt.type == 'animate'? 'end' : 'current');
-				subn(ch);
-			}   
-		});
-	})(node);
-	if(opt.type == 'animate') {
-		viz.compute('end');
-		if(viz.rotated) {
-			viz.rotate(viz.rotated, 'none', { 'property':'end' });
-		}
-		(function subn(n) {
-			n.eachSubnode(function(ch) {
-				if (!ch.traversalTag) {
-					ch.setPos(node.getPos('end'), 'end');
-					subn(ch);
-				}
-			});
-		})(node);
-		viz.fx.animate(opt);
-	} 
-	else if(opt.type == 'replot') {
-		viz.refresh();
-	}
-}
-
-function tagParents(node) {
-	var parents = node.getParents();
-	while (parents.length > 0) {
-		parents[0].traversalTag = true;
-		console.log("Parent " + parents[0].id + " tagged");
-		parents = parents[0].getParents();
-	}
-	node.traversalTag = true;
-}
-
-function tagSubnodes(node) {
-	node.eachSubnode(function(child) {
-		child.traversalTag = true;
-		console.log("Child " + child.id + " tagged");
-	});
-}
-
-function tagSubgraph(node) {
-	node.eachSubgraph(function(child) {
-		child.traversalTag = true;
-		console.log("Child " + child.id + " tagged");
-	});
+    console.log("contractForTraversal");
+  var viz = this.viz;
+  if(node.collapsed || !node.anySubnode($jit.util.lambda(true))) return;
+  opt = $jit.util.merge(this.options, viz.config, opt || {}, {
+    'modes': ['node-property:alpha:span', 'linear']
+  });
+  node.collapsed = true;
+  (function subn(n) {
+    n.eachSubnode(function(ch) {
+        if (!ch.traversalTag) 
+        {
+            ch.ignore = true;
+            ch.setData('alpha', 0, opt.type == 'animate'? 'end' : 'current');
+            subn(ch);
+      }
+    });
+  })(node);
+  if(opt.type == 'animate') {
+    viz.compute('end');
+    if(viz.rotated) {
+      viz.rotate(viz.rotated, 'none', {
+        'property':'end'
+      });
+    }
+    (function subn(n) {
+      n.eachSubnode(function(ch) {
+        if (!ch.traversalTag) 
+        {
+            ch.setPos(node.getPos('end'), 'end');
+            subn(ch);
+        }
+      });
+    })(node);
+    viz.fx.animate(opt);
+  } else if(opt.type == 'replot'){
+    viz.refresh();
+  }
 }
 
