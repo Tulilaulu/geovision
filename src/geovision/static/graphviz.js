@@ -67,6 +67,10 @@ $jit.RGraph.Plot.NodeTypes.implement({
 
         },
         'contains': function(node, pos){
+          if(node.ignore)
+              return false;
+//	  if(overLabel && node == currentNode) // disgusting hack for making label tooltips appear
+//		return true;
           var npos = node.pos.getc(true),
               radius = node.getData('dim');
           var diffx = npos.x - pos.x,
@@ -122,10 +126,15 @@ $jit.RGraph.Plot.EdgeTypes.implement({
 
         },
         'contains': function(adj, pos) {
-            var from = adj.nodeFrom.pos.getc(true),
-		        to = adj.nodeTo.pos.getc(true);
+            var from = adj.nodeFrom.pos.getc(),
+		        to = adj.nodeTo.pos.getc();
             var lineWidth = adj.getData('epsilon');
             var d = lineWidth/2;
+
+            var vect = new Complex(to.x - from.x, to.y - from.y);
+	    var norm = vect.norm();
+            to.$add(vect.scale(-adj.nodeTo.getData("dim") / norm));
+            from.$add(vect.$scale(adj.nodeFrom.getData("dim") / norm));
 
             var minX = Math.min(from.x, to.x) - d, maxX = Math.max(from.x, to.x) + d;
             var minY = Math.min(from.y, to.y) - d, maxY = Math.max(from.y, to.y) + d;
@@ -139,6 +148,7 @@ $jit.RGraph.Plot.EdgeTypes.implement({
 var currentNode;
 var currentEdge;
 var ctxMenuOpen;
+var overLabel;
 
 function hideCtxMenu()
 {
@@ -156,6 +166,7 @@ function init(){
 	jQuery('#loader').fadeOut();//loader fadeaway
 
 	$('#infovis').contextMenu('nodeMenu', {
+		'shadow': false,
 		'bindings': {
 			'close': function() { },
 			'e_align': function() { alignmentfunction(currentEdge.data.id); },
@@ -171,7 +182,13 @@ function init(){
 			'n_tagsubnodes': function() { rgraph.op.tagSubnodes(currentNode)},
 			'n_tagsubgraph': function() { rgraph.op.tagSubgraph(currentNode)},
 			'n_untagsubgraph': function() { untagSubgraph(currentNode)},
-			'n_tagpath': function() { console.log(checkRootTagpath(currentNode))}
+			'n_tagpath': function() { console.log(checkRootTagpath(currentNode))},
+			'n_en_names': function() { showNames(currentNode.data.names, currentNode.id); },
+			'n_en_brendalink': function() { window.open('http://www.brenda-enzymes.org/php/result_flat.php4?ecno=' + currentNode.id); },
+			'n_en_kegglink': function() { window.open('http://www.genome.jp/dbget-bin/www_bget?ec:' + currentNode.id); },
+			'n_db_uni_link': function() { window.open('http://www.uniprot.org/uniprot/' + currentNode.id); },
+			'n_db_frn_link': function() { window.open('http://www.ncrna.org/frnadb/detail.html?i_name=' + currentNode.id); }
+
 		},
 		'onContextMenu': function(event)
 		{
@@ -188,7 +205,20 @@ function init(){
 				$('li[id^=e_]', menu).remove();
 			if(!currentNode)
 				$('li[id^=n_]', menu).remove();
-
+			else
+			{
+				if(currentNode.data.type != 'enzyme')
+					$('li[id^=n_en_]', menu).remove();
+				if(currentNode.data.type != 'dbentry')
+					$('li[id^=n_db_]', menu).remove();
+				else
+				{
+					if(currentNode.data.source != 'uniprot')
+						$('li[id^=n_db_uni]', menu).remove();
+					if(currentNode.data.source != 'frnadb')
+						$('li[id^=n_db_frn]', menu).remove();
+				}
+			}
 			return menu;
 		},
 		'onHideMenu': hideCtxMenu
@@ -286,21 +316,6 @@ function initGraph(json)
 			enable : true,
 			type : 'Native', //edge event doesn't work with 'HTML'..
 
-			onRightClick : function(node, eventInfo, e)
-			{
-//				console.log('onRightClick shouldnt happen');
-				return;
-				if (node.nodeFrom)
-				{
-					alignmentfunction(node.data.id);
-				}
-				else 
-				{
-					node.traversalTag = true;
-					console.log(node.traversalTag);
-				}
-			},
-
 			onClick: function(node, opt)
 			{
 				if(!node || node.nodeFrom)
@@ -308,8 +323,15 @@ function initGraph(json)
 
 				if(busy)
 					return;
-				numSubnodes = $jit.Graph.Util.getSubnodes(node).length;
-				if (numSubnodes == 1)
+
+				numSubnodes = 0;
+				$jit.Graph.Util.eachAdjacency(node, function(adj) {
+					if(adj.nodeFrom == node && adj.data.bitscore)
+						numSubnodes++;
+				});
+
+				console.log(numSubnodes);
+				if (numSubnodes <= 1)
 				{
 					busy = 'expanding';
 					$.getJSON(json_base_url + '&depth=1&' + node.data.type + '=' + node.name,
@@ -424,7 +446,7 @@ function initGraph(json)
 		{
 			$extend: true,
 			type: 'HTML',
-			overridable: true
+			overridable: true,
 		},
 
 		//Set tooltip configuration
@@ -461,7 +483,7 @@ function initGraph(json)
 				else
 				{
 					tip.innerHTML = "<b>" + node.id + "</b>";
-					tip.innerHTML = tip.innerHTML + "<br/>" + node.names;
+					tip.innerHTML = tip.innerHTML + "<br/>" + node.data.name;
 				}
 			}
 		},
@@ -483,9 +505,13 @@ function initGraph(json)
 		//This method is called once, on label creation.
 		onCreateLabel: function(domElement, node)
 		{
-			if(node.name)
+			if(node.name && node.name.substr)
 				domElement.innerHTML = node.name.substr(0, 10);
 			domElement.onclick = function() { rgraph.config.Events.onClick(node); };
+			//domElement.onmouseover = function() { rgraph.config.Events.onMouseEnter(node); };
+			//domElement.onmouseout = function() { rgraph.config.Events.onMouseLeave(node); };
+//			domElement.onmouseover = function() { overLabel = true; if(!ctxMenuOpen) currentNode = node; };
+//			domElement.onmouseout = function() { overLabel = false; if(!ctxMenuOpen) currentNode = null; };
 		},
 		//Change some label dom properties.
 		//This method is called each time a label is plotted.
@@ -624,7 +650,7 @@ function colorEdges(){
 		$jit.Graph.Util.eachAdjacency(node, function(adj) {
 			if(adj.data.bitscore) // XXX - is a blast
 			{
-				grncol = Math.floor((1.0 * (adj.data.bitscore - minScore) / (maxScore - minScore)) * 255);
+				grncol = (minScore == maxScore) ? 255 : Math.floor((1.0 * (adj.data.bitscore - minScore) / (maxScore - minScore)) * 255);
 				col = "#" + formatHex(255 - grncol) + formatHex(grncol) + "00";
 				adj.data.$color = col;
 				//adj.data.color = col;
@@ -727,6 +753,15 @@ function tagSubgraph(node) {
 	});
 	node.traversalTag = true;
 }
+
+function showNames (names, ec){
+	var html = '<strong>Other names of ' + ec + ':</strong><br/>';
+	for (name in names){
+		html = html + names[name] + '<br/>';
+	}
+	$('#names').html(html);
+	return;
+ }
 
 function untagNode(node) {
 	node.traversalTag = false;

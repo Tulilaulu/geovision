@@ -54,6 +54,12 @@ class Blast(models.Model):
 	def deferred(cls):
 		return Blast.objects.all().only('read', 'database_name', 'db_entry', 'error_value', 'bitscore', 'length')
 
+class BlastEcs(models.Model):
+	ec = models.CharField(max_length=13)
+	db_entry = models.ForeignKey(DbEntry)
+	bitscore = models.FloatField()
+	error_value = models.FloatField()
+
 class Result(models.Model): # Query_seq_id Target_seq_id Evident_type E.C._number p_value Bit_score
 	read = models.CharField(max_length=64)
 	db_entry = models.CharField(max_length=32)
@@ -82,6 +88,7 @@ class Enzyme(models.Model):
 class Reaction(models.Model):
 	id = models.CharField(max_length=6, primary_key=True)
 	name = models.CharField(max_length=128)
-	equation = models.CharField(max_length=128)
-	enzymes = models.ManyToManyField(Enzyme, related_name='reactions')
+#	equation = models.CharField(max_length=128)
+	reactants = models.ManyToManyField(Enzyme, related_name='reactants')
+	products = models.ManyToManyField(Enzyme, related_name='reactions')
 	compounds = models.ManyToManyField(Pathway, related_name='reactions')

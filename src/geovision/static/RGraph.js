@@ -4716,11 +4716,14 @@ Graph.Util = {
         for(var id in adj) {
           var a = adj[id];
           if(filter(a)) {
-            if(a.nodeFrom != node) {
-              var tmp = a.nodeFrom;
-              a.nodeFrom = a.nodeTo;
-              a.nodeTo = tmp;
-            }
+
+// REMOVED: iterating over a graph *changes* it??? fixes arrows pointing to wrong direction in chrome, HOPEFULLY doesn't break anything else...
+//            if(a.nodeFrom != node) {
+//              var tmp = a.nodeFrom;
+//              a.nodeFrom = a.nodeTo;
+//              a.nodeTo = tmp;
+//            }
+
             action(a, id);
           }
         }
@@ -4998,6 +5001,8 @@ Graph.Util = {
         var ans = [];
         this.eachAdjacency(node, function(adj) {
             var n = adj.nodeTo;
+            if(n == node)
+		n = adj.nodeFrom;
             if(n._depth < node._depth) ans.push(n);
         });
         return ans;
