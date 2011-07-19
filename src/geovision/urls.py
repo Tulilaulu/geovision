@@ -2,6 +2,8 @@ from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
 
 admin.autodiscover()
+from geovision.admin import setup_admin
+setup_admin()
 
 urlpatterns = patterns('',
 	(r'^$', 'userdb.views.loginpage'),

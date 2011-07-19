@@ -113,14 +113,21 @@
     $.each(cur.bindings, function(id, func) {
       $('#'+id, menu).bind('click', function(e) {
         func(trigger, currentTarget);
-        $(document).unbind('click.contextMenuHider'); // ADDED contextMenuHider namespace to prevent other click events on window from disappearing
         hide(cur); // ADDED
       });
     });
 
-    menu.css({'left':e[cur.eventPosX],'top':e[cur.eventPosY]}).show();
+    var winHeight = $(window).height() + $(window).scrollTop(), winWidth = $(window).width() + $(window).scrollLeft(); // ADDED this block to prevent the menu from going off-screen on small displays
+    var menuHeight = menu.height(), menuWidth = menu.width();
+    var x = e[cur.eventPosX], y = e[cur.eventPosY];
+    if(x + menuWidth > winWidth)
+        x = winWidth - menuWidth;
+    if(y + menuHeight > winHeight)
+        y = winHeight - menuHeight;
+        
+    menu.css({'left': x,'top': y}).show(); // CHANGED 'left':, 'top':
     if (cur.shadow) shadow.css({width:menu.width(),height:menu.height(),left:e.pageX+2,top:e.pageY+2}).show();
-    $(document).one('click.contextMenuHider', function() { hide(cur); }); // ADDED cur argument to hide(), added namespace to the event handler
+    $(document).bind('click.contextMenuHider', function(e) { if(e.which == 1) hide(cur); }); // ADDED cur argument to hide(), added namespace to the event handler
   }
 
   function hide(cur) { // ADDED cur argument
@@ -128,6 +135,7 @@
     shadow.hide();
     if(!!cur.onHideMenu) // ADDED
         cur.onHideMenu();
+    $(document).unbind('click.contextMenuHider'); // ADDED contextMenuHider namespace to prevent other click events on window from disappearing
   }
 
   // Apply defaults

@@ -67,8 +67,10 @@ $jit.RGraph.Plot.NodeTypes.implement({
 
         },
         'contains': function(node, pos){
-	  if(node == currentNode)
-		return true;
+          if(node.ignore)
+              return false;
+//	  if(overLabel && node == currentNode) // disgusting hack for making label tooltips appear
+//		return true;
           var npos = node.pos.getc(true),
               radius = node.getData('dim');
           var diffx = npos.x - pos.x,
@@ -124,10 +126,15 @@ $jit.RGraph.Plot.EdgeTypes.implement({
 
         },
         'contains': function(adj, pos) {
-            var from = adj.nodeFrom.pos.getc(true),
-		        to = adj.nodeTo.pos.getc(true);
+            var from = adj.nodeFrom.pos.getc(),
+		        to = adj.nodeTo.pos.getc();
             var lineWidth = adj.getData('epsilon');
             var d = lineWidth/2;
+
+            var vect = new Complex(to.x - from.x, to.y - from.y);
+	    var norm = vect.norm();
+            to.$add(vect.scale(-adj.nodeTo.getData("dim") / norm));
+            from.$add(vect.$scale(adj.nodeFrom.getData("dim") / norm));
 
             var minX = Math.min(from.x, to.x) - d, maxX = Math.max(from.x, to.x) + d;
             var minY = Math.min(from.y, to.y) - d, maxY = Math.max(from.y, to.y) + d;
@@ -141,16 +148,19 @@ $jit.RGraph.Plot.EdgeTypes.implement({
 var currentNode;
 var currentEdge;
 var ctxMenuOpen;
+var overLabel;
 
 function hideCtxMenu()
 {
+	if(!ctxMenuOpen) return;
 	ctxMenuOpen = false;
 	busy = false;
-	rgraph.config.Events.onMouseLeave(currentNode || currentEdge); // XXX does this work completely?
+	if(currentNode) rgraph.config.Events.onMouseLeave(currentNode)
+	if(currentEdge) rgraph.config.Events.onMouseLeave(currentEdge); // XXX does this work completely?
 	currentEdge = currentNode = false;
 	rgraph.config.Navigation.panning = true;
 	rgraph.config.Tips.enable = true;
-	rgraph.events.pressed = undefined;
+//	rgraph.events.pressed = undefined;
 }
 
 function init(){
@@ -158,6 +168,7 @@ function init(){
 	jQuery('#loader').fadeOut();//loader fadeaway
 
 	$('#infovis').contextMenu('nodeMenu', {
+		'shadow': false,
 		'bindings': {
 			'close': function() { },
 			'e_align': function() { alignmentfunction(currentEdge.data.id); },
@@ -192,7 +203,7 @@ function init(){
 			rgraph.config.Tips.enable = false;
 			rgraph.tips.hide();
 
-			if(!currentEdge)
+			if(!currentEdge || !currentEdge.data.bitscore ) 
 				$('li[id^=e_]', menu).remove();
 			if(!currentNode)
 				$('li[id^=n_]', menu).remove();
@@ -307,21 +318,6 @@ function initGraph(json)
 			enable : true,
 			type : 'Native', //edge event doesn't work with 'HTML'..
 
-			onRightClick : function(node, eventInfo, e)
-			{
-//				console.log('onRightClick shouldnt happen');
-				return;
-				if (node.nodeFrom)
-				{
-					alignmentfunction(node.data.id);
-				}
-				else 
-				{
-					node.traversalTag = true;
-					console.log(node.traversalTag);
-				}
-			},
-
 			onClick: function(node, opt)
 			{
 				if(!node || node.nodeFrom)
@@ -329,8 +325,15 @@ function initGraph(json)
 
 				if(busy)
 					return;
-				numSubnodes = $jit.Graph.Util.getSubnodes(node).length;
-				if (numSubnodes == 1)
+					//loading....! TODO
+
+				numSubnodes = 0;
+				$jit.Graph.Util.eachAdjacency(node, function(adj) {
+					if(adj.nodeFrom == node && adj.data.bitscore)
+						numSubnodes++;
+				});
+
+				if (numSubnodes <= 1)
 				{
 					busy = 'expanding';
 					$.getJSON(json_base_url + '&depth=1&' + node.data.type + '=' + node.name,
@@ -382,7 +385,7 @@ function initGraph(json)
 					rgraph.fx.animate(
 					{
 						modes: ['edge-property:lineWidth'],
-						duration: 500
+						duration: 1
 					});
 				}
 				else if(node)
@@ -390,14 +393,14 @@ function initGraph(json)
 					currentNode = node;
 
 					rgraph.canvas.getElement().style.cursor = 'pointer';
-					node.data.$dim = node.getData('dim') + 3;
+					node.data.$dim = rgraph.config.Node.dim + 3;
 					
 					if(busy)
 						return;
 					rgraph.fx.animate(
 					{
 						modes: ['node-property:dim'],
-						duration: 500
+						duration: 1
 					});
 
 				}
@@ -445,7 +448,7 @@ function initGraph(json)
 		{
 			$extend: true,
 			type: 'HTML',
-			overridable: true
+			overridable: true,
 		},
 
 		//Set tooltip configuration
@@ -509,8 +512,8 @@ function initGraph(json)
 			domElement.onclick = function() { rgraph.config.Events.onClick(node); };
 			//domElement.onmouseover = function() { rgraph.config.Events.onMouseEnter(node); };
 			//domElement.onmouseout = function() { rgraph.config.Events.onMouseLeave(node); };
-			domElement.onmouseover = function() { if(!ctxMenuOpen) currentNode = node; };
-			domElement.onmouseout = function() { if(!ctxMenuOpen) currentNode = null; };
+//			domElement.onmouseover = function() { overLabel = true; if(!ctxMenuOpen) currentNode = node; };
+//			domElement.onmouseout = function() { overLabel = false; if(!ctxMenuOpen) currentNode = null; };
 		},
 		//Change some label dom properties.
 		//This method is called each time a label is plotted.
@@ -649,7 +652,7 @@ function colorEdges(){
 		$jit.Graph.Util.eachAdjacency(node, function(adj) {
 			if(adj.data.bitscore) // XXX - is a blast
 			{
-				grncol = Math.floor((1.0 * (adj.data.bitscore - minScore) / (maxScore - minScore)) * 255);
+				grncol = (minScore == maxScore) ? 255 : Math.floor((1.0 * (adj.data.bitscore - minScore) / (maxScore - minScore)) * 255);
 				col = "#" + formatHex(255 - grncol) + formatHex(grncol) + "00";
 				adj.data.$color = col;
 				//adj.data.color = col;
@@ -776,4 +779,9 @@ function untagSubgraph(node) {
 	node.eachSubgraph(function(sn) {
 		sn.traversalTag = false;
 	});
+}
+
+function filter(bitscore) {
+	console.log(bitscore);
+	return;
 }
