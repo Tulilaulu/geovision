@@ -155,9 +155,9 @@ function hideCtxMenu()
 {
 	if(!ctxMenuOpen) return;
 	ctxMenuOpen = false;
-	busy = false;
 	if(currentNode) rgraph.config.Events.onMouseLeave(currentNode)
 	if(currentEdge) rgraph.config.Events.onMouseLeave(currentEdge); // XXX does this work completely?
+	busy = false;
 	currentEdge = currentNode = false;
 	rgraph.config.Navigation.panning = true;
 	rgraph.config.Tips.enable = true;
@@ -172,6 +172,20 @@ function init(){
 		'shadow': false,
 		'bindings': {
 			'close': function() { },
+			'n_center': function() {
+				console.log(currentNode.id);
+				var id = currentNode.id;
+				busy = true;
+				rgraph.onClick(id, { 
+					type: 'fade:con', 
+					fps:30, duration: 500, 
+					hideLabels: false, 
+					onComplete: function() { 
+						busy = false;
+						rgraph.canvas.getElement().style.cursor = '';
+					}
+				});
+			},
 			'e_align': function() { alignmentfunction(currentEdge.data.id); },
 			'n_tag': function() { 
 				if (currentNode.traversalTag != true) {
@@ -226,7 +240,6 @@ function init(){
 		},
 		'onHideMenu': hideCtxMenu
 	});
-		
 }
 
 function prepareJSON(json)
@@ -382,7 +395,12 @@ function initGraph(json)
                                 duration: 1000, 
                                 hideLabels: true, 
                                 transition: $jit.Trans.Quart.easeOut, 
-                                onComplete: function() {colorEdges(); busy = false; rgraph.canvas.getElement().style.cursor = '';}});
+                                onComplete: function() 
+									{colorEdges(); 
+									busy = false; 
+									rgraph.canvas.getElement().style.cursor = '';
+									}
+								});
 								$('#load').html("");
                     }
                     else 
@@ -623,6 +641,7 @@ function initGraph(json)
 	rgraph.op.tagParents = tagParents;
 	rgraph.op.tagSubgraph = tagSubgraph;
 	rgraph.op.tagSubnodes = tagSubnodes;
+	rgraph.centerToNode = centerToNode;
 }
 
 var alignmentopen = false;
@@ -751,9 +770,6 @@ function contractForTraversal(node, opt) {
 	})(node);
 	if(opt.type == 'animate') {
 		viz.compute('end');
-		if(viz.rotated) {
-			viz.rotate(viz.rotated, 'none', { 'property':'end' });
-		}
 		(function subn(n) {
 			n.eachSubnode(function(ch) {
 				if (!ch.traversalTag) {
@@ -789,6 +805,9 @@ function tagNode(node) {
 	node.traversalTag = true;
 }
 
+/* 
+ * Function for tagging a path from node to root, always tags first node in parents list
+ */
 function tagParents(node) {
 	var parents = node.getParents();
 	while (parents.length > 0) {
@@ -845,6 +864,9 @@ function showEnzymeData (node){
 	return;
  }
 
+/*
+ * Untags a node and all nodes in it's subgraph without tagged path to root.
+ */
 function untagNode(node) {
 	node.traversalTag = false;
 	(function subn(n) {
@@ -863,7 +885,7 @@ function untagSubgraph(node) {
 
  /*function to filter graph by a bitscore inputted by the user*/
 function filter(bitscore) {
-	if (!(bitscore > 0)) { /*bitscores must make sence*/
+	if (!(bitscore > 0)) { /*bitscores must make sense*/
 		$('#filtererror').html("Not a valid bitscore.");
 	}
 	else {
@@ -906,24 +928,17 @@ function filterContract(node, opt) {
 	node.collapsed = true;
 	(function subn(n) {
 		n.eachSubnode(function(ch) {
-		//	if (!ch.traversalTag) {
-				ch.ignore = true;
-				ch.setData('alpha', 0, opt.type == 'animate'? 'end' : 'current');
-				subn(ch);
-		//	}
+			ch.ignore = true;
+			ch.setData('alpha', 0, opt.type == 'animate'? 'end' : 'current');
+			subn(ch);
 		});
 	})(node);
 	if(opt.type == 'animate') {
 		viz.compute('end');
-		if(viz.rotated) {
-			viz.rotate(viz.rotated, 'none', { 'property':'end' });
-		}
 		(function subn(n) {
 			n.eachSubnode(function(ch) {
-		//		if (!ch.traversalTag) {
-					ch.setPos(node.getPos('end'), 'end');
-					subn(ch);
-		//		}
+				ch.setPos(node.getPos('end'), 'end');
+				subn(ch);
 			});
 		})(node);
 		viz.fx.animate(opt);
@@ -932,3 +947,41 @@ function filterContract(node, opt) {
 		viz.refresh();
 	}
 }
+
+
+  function centerToNode(id, opt){
+    if (this.root != id && !this.busy) {
+      this.busy = true;
+      this.root = id;
+      var that = this;
+      var obj = that.getNodeAndParentAngle(id);
+
+      // second constraint
+      this.tagChildren(obj.parent, id);
+      this.parent = obj.parent;
+      this.compute('end');
+
+      // first constraint
+      var thetaDiff = obj.theta - obj.parent.endPos.theta;
+      this.graph.eachNode(function(elem){
+        elem.endPos.set(elem.endPos.getp().add($P(thetaDiff, 0)));
+      });
+
+      var mode = this.config.interpolation;
+      opt = $.merge( {
+        onComplete: $.empty
+      }, opt || {});
+
+      this.fx.animate($.merge( {
+        hideLabels: true,
+        modes: [
+          mode
+        ]
+      }, opt, {
+        onComplete: function(){
+          that.busy = false;
+          opt.onComplete();
+        }
+      }));
+    }
+  }
