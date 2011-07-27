@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+    {% block additional_title %}- Login{% endblock %}
+    {% block allcontent %}
+    {% if error_message %}<div class="error">{{ error_message }}</div>{% endif %}
+	<script type="text/javascript" >
+		if ($.browser.msie || $.browser.opera || $.browser.mozilla && $.browser.version.slice(0,3) > "1.9"){
+			document.write("<div class='error'>Your browser might not be supported by this software<br/>"+
+			"Please try the latest version of <a href='http://www.google.com/chrome'>chrome</a> or <a href='http://mozilla.org'>firefox</a>."+
+			"</div>")
+		}
+
+	</script>
+    <div  class="greenbox" id="login">
+        <h2>Geovision</h2>
+        <form id="login" action="logging_in" method="post">
+        {% csrf_token %}<!--protects from cross site request forgery-->
+        <label>Username: </label> <input size="10" type="text" name="username" /><br/>
+
+        <label>Password: </label><input size="10" type="password" name="password" /><br/>
+    <input type="submit" value="Login" /></form><br/>
+    <a href="register" id="register">Register</a>
+    <a href="about" id="about">About</a>
+    </div>
+    {% endblock %}
+
+
