@@ -1,0 +1,10 @@
+# Output of parseUniprot.py
+# Protein existence types:
+#  U	uncertain
+#  ET	evidence at transcript level
+#  EP	evidence at protein level
+#  P	predicted
+#  H	inferred from homology
+#ACC PEXT ECS
+Q197F8	P	?
+Q197E9	ET	5.3.3.1,1.1.1.145
