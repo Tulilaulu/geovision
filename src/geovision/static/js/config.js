@@ -20,46 +20,60 @@ var labelType, useGradients, nativeTextSupport, animate;
 var rgraph;
 var RGraph = $jit.RGraph;
 var busy = false;
-var settings = {
-			canvaswidth: "{{ settings.settings.canvaswidth }}",
-			canvasheight: "{{ settings.settings.canvasheight }}"
+var defaultsettings = {
+		animationsettings:
+			{duration:"1000",
+			transition:"$jit.Trans.linear",
+			type:"animate"},
+		settings:
+			{canvaswidth: 600,
+			canvasheight: 600}
 };
-
-//function getUrlVars()
-//{
-//    var vars = [], hash;
-//    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-//
-//    for(var i = 0; i < hashes.length; i++)
-//    {
-//        hash = hashes[i].split('=');
-//        vars.push(hash[0]);
-//        vars[hash[0]] = hash[1];
-//    }
-//
-//    return vars;
-//}
-//
-//var hash = getUrlVars();
+var w = 0;
+var h = 0;
+		if (settings  == undefined) settings = defaultsettings;
+		if (settings.settings.canvaswidth!=undefined){
+			w = parseInt(settings.settings.canvaswidth)
+		}
+		else {
+			w = defaultsettings.settings.canvaswidth
+		}
+		if (settings.settings.canvasheight!=undefined){
+			h = parseInt(settings.settings.canvasheight)
+		}
+		else {
+			h = defaultsettings.settings.canvaswidth
+		}
+		if (settings.animationsettings.duration!=undefined){
+			d = parseInt(settings.animationsettings.duration)
+		}
+		else {
+			d = defaultsettings.animationsettings.duration
+		}
+		if (settings.animationsettings.transition!=undefined){
+			t = settings.animationsettings.transition
+		}
+		else {
+			t = defaultsettings.animationsettings.transition
+		}
 
 var Config = 
 {
 		//Where to append the visualization
 		injectInto: 'infovis',
 		//set canvas size
-
-		width: settings.canvaswidth,
-		height: settings.canvasheight,
+		width:w,
+		height:h,
 		//Optional: create a background canvas that plots
 		//concentric circles.
 		background: { CanvasStyles: { strokeStyle: '#555' } },
 		//set distance for nodes on different levels
 		levelDistance: 100,
 		//set transformation speed
-		duration: 500,
+		duration: d,
 		fps: 40,
 		//set transformation style
-		transition: $jit.Trans.Circ,
+		transition: t,
 		//Add navigation capabilities:
 		//zooming by scrolling and panning.
 		Navigation:
