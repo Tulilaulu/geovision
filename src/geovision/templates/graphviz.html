@@ -4,7 +4,12 @@
 <!--It seems it has to be before anything else-->
 {%autoescape off%}
 <script language="javascript" type="text/javascript">
-var settings = {{user_settings}};
+var settings = 
+{% if user_settings %}
+{{user_settings}};
+{% else %}
+ {};
+{% endif %}
 </script>
 {%endautoescape%}
 <!-- JIT Library File -->
@@ -90,7 +95,7 @@ $(function() {
 		});
 	});
 </script>
-
+var settings = {{user_settings}};
 {% endblock %}
 {% block content %}
 <body>
@@ -124,7 +129,35 @@ $(function() {
 
 			<div id="right-container">
 				<div id="inner-details"></div>
-				<span id="settingslink">Your settings</span>  {%if settingsmessage%}<span style="color:red;" id="settingmessage">{{ settingsmessage }}</span>{%endif%}<br/>
+				<span id="helplink">Help</span>
+				<div id="help">
+					Right click on an edge to show alignment of read sequence and database sequence (upper is read). The data opens under the graph and only one alignment can be visible at the same time.
+				<br/>
+				</div>
+				<br/>
+				<br/>
+				<div id="coloring">
+					<form id="colorform">
+						<input type="radio" name="colortype" id="colortypeDynamic" value="dynamic" checked>Dynamic</input><br/>
+						<input type="radio" name="colortype" id="colortypeCustom" value="custom">Custom: </input>
+						<input type="text" id="colorMin" size="4" disabled/>-<input type="text" id="colorMax" size="4" disabled/><br/>
+						<input type="submit" id="colorizeSubmit" value="Colorize"/>
+						<span id="colorErrorMsg" class="error"></span>
+					</form>
+				</div>
+				<br/>
+				<span id="filtertext">Filter graph</span>
+				<div id="filter">
+					<form id="filterform" action="" method="post">
+						<span id="filtererror"></span>
+						<p>Filter now visible graph with bitscore:</p>
+						<input size="10" type="text" name="bitscorefilter" id="bitscorefilter" value="{{ bitscore }}"/><br/>
+						<input type="hidden" name="masterbitscorefilter" value="{{ bitscore }}"/>
+						<input id="filterbutton" type="submit" value="Filter" size="10"/><br/>
+					</form>
+				</div>
+				<div id="names"></div>
+<span id="settingslink">Your settings</span>  {%if settingsmessage%}<span style="color:red;" id="settingmessage">{{ settingsmessage }}</span>{%endif%}<br/>
 				<div id="settings">
 					<form id="settingsform" action="savesettings" method="post">
 						{% csrf_token %}
@@ -133,7 +166,7 @@ $(function() {
 						<label>Animations:</label><br/>
 						<input type="radio" name="group1" value="animations_on" checked> On<br/>
 						<input type="radio" name="group1" value="animations_off"> Off<br/>
-						<label>Animation speed:</label><br/>
+						<label>Animation speed in ms:</label><br/>
 						<input size="7" type="text" name="duration" value="{{ user_settings.animationsettings.duration }}" /><br/>
 						<label>Animation type:</label><br/>
 						<select name="animationtype">
@@ -162,35 +195,6 @@ $(function() {
 					</form>
 					<br/>
 				</div>
-				<br/>
-				<span id="helplink">Help</span>
-				<div id="help">
-					Right click on an edge to show alignment of read sequence and database sequence (upper is read). The data opens under the graph and only one alignment can be visible at the same time.
-				<br/>
-				</div>
-				<br/>
-				<br/>
-				<div id="coloring">
-					<form id="colorform">
-						<input type="radio" name="colortype" id="colortypeDynamic" value="dynamic" checked>Dynamic</input><br/>
-						<input type="radio" name="colortype" id="colortypeCustom" value="custom">Custom: </input>
-						<input type="text" id="colorMin" size="4" disabled/>-<input type="text" id="colorMax" size="4" disabled/><br/>
-						<input type="submit" id="colorizeSubmit" value="Colorize"/>
-						<span id="colorErrorMsg" class="error"></span>
-					</form>
-				</div>
-				<br/>
-				<span id="filtertext">Filter graph</span>
-				<div id="filter">
-					<form id="filterform" action="" method="post">
-						<span id="filtererror"></span>
-						<p>Filter now visible graph with bitscore:</p>
-						<input size="10" type="text" name="bitscorefilter" id="bitscorefilter" value=""/><br/>
-						<input id="filterbutton" type="submit" value="Filter" size="10"/><br/>
-					</form>
-				</div>
-				<div id="names"></div>
-
 			</div>
 
 			<div id="log"></div>
