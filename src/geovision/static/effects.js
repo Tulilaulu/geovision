@@ -31,6 +31,7 @@ function closeSearch(e)
 }
 jQuery(function($) {
 /*! Function to open the graph-option-navigation and the alignment and other items with a nice animations.*/
+
 	$('#settingslink').click(function() {
 		if (!settingsopen){
 			$('#settings').slideDown();
