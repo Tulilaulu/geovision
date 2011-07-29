@@ -42,18 +42,16 @@ Config.Events =
 				busy = 'expanding';
 				rgraph.canvas.getElement().style.cursor = 'wait';
 				$('#load').html("Loading...");
-				rgraph.op.expand(node, 
-						{ type: 'animate', 
-						duration: 1000, 
-						hideLabels: true, 
-						transition: $jit.Trans.Quart.easeOut, 
-						onComplete: function() 
-							{colorEdges(); 
+				rgraph.op.expand(
+					node, $jit.util.merge(
+						defaultsettings.animationsettings,
+						settings.animationsetting,
+						{ onComplete: function() {
+							colorEdges(); 
 							busy = false; 
-							rgraph.canvas.getElement().style.cursor = '';
-							}
-						});
-						$('#load').html("");
+							rgraph.canvas.getElement().style.cursor = ''; 
+						}}));
+				$('#load').html("");
 			}
 			else 
 			{
@@ -63,12 +61,14 @@ Config.Events =
 				busy = 'contracting';
 				rgraph.canvas.getElement().style.cursor = 'wait';
 				$('#load').html("Contracting...");
-				rgraph.op.contractForTraversal(node, 
-						{ type: 'animate',
-						duration: 1000, 
-						hideLabels: true, 
-						transition: $jit.Trans.Quart.easeOut, 
-						onComplete: function() {colorEdges(); busy = false;rgraph.canvas.getElement().style.cursor = '';}});
+				rgraph.op.contractForTraversal(
+                    node, $jit.util.merge(
+						rgraph.op.userOptions, 
+						{ onComplete: function() {
+								colorEdges();
+								busy = false;
+								rgraph.canvas.getElement().style.cursor = ''; 
+								}}));
 				$('#load').html("");
 			}
 		}
@@ -77,22 +77,13 @@ Config.Events =
 		$jit.id('inner-details').innerHTML += "<b>" + node.id + "</b><br/>"
 		$jit.id('inner-details').innerHTML += node.data.description + "<br/>"
 		if(node.data.type == 'enzyme'){
-			$.getJSON('/enzyme_data?id=' + currentNode.id, showEnzymeData);
+			$.getJSON('/enzyme_data?id=' + node.id, showEnzymeData);
 		}
 	},
 	onMouseEnter: function(node, eventInfo, e)
 	{
 		if(ctxMenuOpen)
 			return;
-
-		if(currentEdge != undefined){
-			
-			rgraph.config.Events.onMouseLeave(currentEdge);
-		}
-		if(currentNode != undefined){
-			
-			rgraph.config.Events.onMouseLeave(currentNode);
-		}
 
 		if (node.nodeTo)
 		{
