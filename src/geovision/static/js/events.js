@@ -8,13 +8,13 @@ Config.Events =
 	{
 		if(!node || node.nodeFrom)
 			return;
-
-		numSubnodes = 0;
+/*
+		var numSubnodes = 0;
 		$jit.Graph.Util.eachAdjacency(node, function(adj) {
 			if(adj.nodeFrom == node && adj.data.blast_id)
 				numSubnodes++;
 		});
-
+*/
 		if(currentEdge != undefined){
 			
 			rgraph.config.Events.onMouseLeave(currentEdge);
@@ -25,37 +25,12 @@ Config.Events =
 		}
 
 		//if clicked a leaf-node
-		if (numSubnodes <= 1)
+		if (!node.data.opened)
 		{
 			if(busy)
 				return;
-
-			busy = 'expanding';
-			rgraph.canvas.getElement().style.cursor = 'wait';
-			$('#load').html("Loading...");
-			$.getJSON(json_base_url + '&depth=1&' + node.data.type + '=' + node.name,
-				function(newdata)
-				{
-					graph = rgraph.construct(newdata)
-					//UPDATE HIDDEN NODE INFO IN ALREADY EXISTING NODES
-					var graphNode = graph.getNode(node.id);
-					
-					if(graphNode){
-						var graphNodeData = graphNode.data;
-						node.data.hidden_nodes_count = graphNodeData['hidden_nodes_count'];
-					}
-					
-					rgraph.op.sum(prepareJSON(newdata), $jit.util.merge(
-						rgraph.op.userOptions,
-						{
-							onMerge: colorEdges,
-							onComplete: function() { 
-								busy = false;
-								rgraph.canvas.getElement().style.cursor = '';
-						}}));
-					$('#load').html("");
-				}
-			);
+			node.data.opened = true;
+			fetchJSON(node);
 		}
 		//the clicked node is not a leaf node
 		else
@@ -70,7 +45,8 @@ Config.Events =
 				$('#load').html("Loading...");
 				rgraph.op.expand(
 					node, $jit.util.merge(
-						rgraph.op.userOptions, 
+						defaultsettings.animationsettings,
+						settings.animationsetting,
 						{ onComplete: function() {
 							colorEdges(); 
 							busy = false; 
@@ -102,22 +78,13 @@ Config.Events =
 		$jit.id('inner-details').innerHTML += "<b>" + node.id + "</b><br/>"
 		$jit.id('inner-details').innerHTML += node.data.description + "<br/>"
 		if(node.data.type == 'enzyme'){
-			$.getJSON('/enzyme_data?id=' + currentNode.id, showEnzymeData);
+			$.getJSON('/enzyme_data?id=' + node.id, showEnzymeData);
 		}
 	},
 	onMouseEnter: function(node, eventInfo, e)
 	{
 		if(ctxMenuOpen)
 			return;
-
-		if(currentEdge != undefined){
-			
-			rgraph.config.Events.onMouseLeave(currentEdge);
-		}
-		if(currentNode != undefined){
-			
-			rgraph.config.Events.onMouseLeave(currentNode);
-		}
 
 		if (node.nodeTo)
 		{

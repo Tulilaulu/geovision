@@ -14,6 +14,7 @@ from django.core.context_processors import csrf
 from django.db.models import Q
 from meta.models import EnzymeName, Enzyme
 from geovision.viz.models import Blast
+from geovision.userdb.models import Sample, Collection
 from geovision.settings import STATIC_URL
 import json
 import re
@@ -29,7 +30,10 @@ def create_json(enzyme, read, dbentry, bitscore, evalue, depth, hits, offset):
 # TODO: move somewhere else
 def render(request, template, dict={}):
 	user_settings = request.user.get_profile().settings
-	return render_to_response(template, context_instance=RequestContext(request, merge_dict(dict, {'user_settings': user_settings})))
+	if 'settingsmessage' in request.GET:
+		return render_to_response(template, context_instance=RequestContext(request, merge_dict(dict, {'user_settings': user_settings, 'settingsmessage': request.GET['settingsmessage']})))
+	else:
+		return render_to_response(template, context_instance=RequestContext(request, merge_dict(dict, {'user_settings': user_settings})))
 def merge_dict(d1, d2):
 	d = {}
 	d.update(d1)
@@ -75,7 +79,7 @@ def graphrefresh(request): #make a new JSon, set defaults if needed
 			elif num_results == 1: return enzyme.ec_number
 			else: return ec_numbers
 
-	condition_dict = { 'bitscore': 30, 'evalue': 0.005, 'depth': 1, 'hits': 10, 'enzyme': '', 'read': '', 'dbentry': '', 'offset': 0}
+	condition_dict = { 'bitscore': 30, 'evalue': 0.005, 'depth': 1, 'hits': 5, 'enzyme': '', 'read': '', 'dbentry': '', 'offset': 0}
 	for k in condition_dict.keys():
 		try:
 			if request.POST[k] != '':
@@ -151,3 +155,12 @@ def enzyme_data(request):
 
 	return HttpResponse(json.dumps({'id': searchterm, 'names': names, 'pathways': pathways, 'reactions': reactions}), mimetype='text/plain')
 
+@login_required
+def save_settings(request):
+		try:
+				profile = request.user.get_profile()
+				profile.settings = request.POST['settings']
+				profile.save()
+				return HttpResponse('ok')
+		except KeyError:
+			return HttpResponse('missing "settings" parameter')
