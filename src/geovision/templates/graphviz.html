@@ -51,38 +51,56 @@ $(function() {
 <!--[if IE]><script language="javascript" type="text/javascript" src="../../Extras/excanvas.js"></script><![endif]-->
 {% block sidenavi_content %}
 
+<form id="graphrefreshform" action="graphrefresh" method="post">{% csrf_token %} <!--protects from cross site request forgery-->
+	<table><tr><td colspan="2">
+		<strong>Get a new graph:</strong>
+	</td></tr><tr><td colspan="2">
+		<p>(Input only one of the three following)</p>
+	</td></tr><tr><td>
+		<label>Enzyme</label>
+	</td><td>
+		<input size="10" type="text" name="enzyme" id="ec" value="{{ enzyme }}"/><br/><br/>
+		{% if enzyme_list %}
+		</td></tr><tr><td colspan="2">Multiple enzymes matched, pick one:
+		{% for e in enzyme_list %}
+		</td></tr><tr><td colspan="2"><p class="submitForm" id='{{ e.enzyme }}'>{{ e.enzyme_name }} ({{ e.enzyme }})</p>
+		{% endfor %}
+		{% endif %}
+	</td></tr><tr><td>
+		<label>Read id</label>
+	</td><td>
+		<input size="10" type="text" name="read" value="{{ read }}"/><br/><br/>
+	</td></tr><tr><td>
+		<label>DB entry id</label>
+	</td><td>
+		<input size="10" type="text" name="dbentry" value="{{ dbentry }}"/><br/><br/>
+	</td></tr><tr><td>
+		<label>Bitscore</label>
+	</td><td>
+		<input size="10" type="text" name="bitscore" value="{{ bitscore }}"/><br/><br/>
+	</td></tr><tr><td>
+		<label>E-value</label>
+	</td><td>
+		<input size="10" type="text" name="e-value" value="{{ evalue }}"/><br/><br/>
+	</td></tr><tr><td>
+		<label>Depth</label>
+	</td><td>
+		<input size="10" type="text" name="depth" value="{{ depth }}"/><br/><br/>
+	</td></tr><tr><td>
+		<label>Hits</label>
+	</td><td>
+		<input size="10" type="text" name="hits" value="{{ hits }}" /><br/><br/>
+	</td></tr><tr><td colspan="2">
+		<input id="graphrefresh" type="submit" value="Refresh page" size="10"/><br/>
+	</td></tr></table>
+</form>
+
 {% if error_message or not json_base_url %}
 	<script language="javascript" type="text/javascript">openSearch($('#graphnavi'));</script>
 	<div class="error" id="error">{{ error_message }}</div>
 {% else %}
-	<!--<div class="error" id="error"></div>-->
+	<div class="error" id="error"></div>
 {% endif %}
-
-<a style="float:left; border: 2px white solid; background-color: #F2F2F2; margin-left: 10px;" href="logging_out">Logout</a><br/><br/>
-<form id="graphrefreshform" action="graphrefresh" method="post">{% csrf_token %} <!--protects from cross site request forgery-->
-    <p>Input only one of the three following:</p>
-    <label>Enzyme</label>
-    <input size="10" type="text" name="enzyme" id="ec" value="{{ enzyme }}"/><br/><br/>
-	{% if enzyme_list %}
-	Multiple enzymes matched, pick one:
-	{% for e in enzyme_list %}
-	<p class="submitForm" id='{{ e.enzyme }}'>{{ e.enzyme_name }} ({{ e.enzyme }})</p>
-	{% endfor %}
-	{% endif %}
-    <label>Read id</label>
-    <input size="10" type="text" name="read" value="{{ read }}"/><br/><br/>
-    <label>DB entry id</label>
-    <input size="10" type="text" name="dbentry" value="{{ dbentry }}"/><br/><br/>
-    <label>Bitscore</label>
-    <input size="10" type="text" name="bitscore" value="{{ bitscore }}"/><br/><br/>
-    <label>E-value</label>
-    <input size="10" type="text" name="e-value" value="{{ evalue }}"/><br/><br/>
-    <label>Depth</label>
-    <input size="10" type="text" name="depth" value="{{ depth }}"/><br/><br/>
-    <label>Hits</label>
-    <input size="10" type="text" name="hits" value="{{ hits }}" /><br/><br/>
-    <input id="graphrefresh" type="submit" value="Refresh page" size="10"/><br/>
-</form>
 
 <script language="javascript" type="text/javascript">
 	$(function()
@@ -95,7 +113,6 @@ $(function() {
 		});
 	});
 </script>
-
 {% endblock %}
 {% block content %}
 <body>
@@ -103,6 +120,7 @@ $(function() {
         <ul> 
              <li id="close">Close menu</li>
              <li id="n_center">Center Node</li>
+			 <li id="n_more">More connections</li>
              <li id="e_align">Show Alignment</li>
              <li id="n_tag">Tag/Untag Node</li>
              <li id="n_tagparents">Tag Parents</li>
@@ -128,6 +146,7 @@ $(function() {
 			</div>
 
 			<div id="right-container">
+				<a id="logoutbutton" href="logging_out">Logout</a><br/>
 				<div id="inner-details"></div>
 				<span id="helplink">Help</span>
 				<div id="help">
@@ -136,10 +155,11 @@ $(function() {
 				</div>
 				<br/>
 				<br/>
+					<button id="deleteUntagged">Delete all untagged</button>
 				<div id="coloring">
-					<form id="colorform">
-						<input type="radio" name="colortype" id="colortypeDynamic" value="dynamic" checked>Dynamic</input><br/>
-						<input type="radio" name="colortype" id="colortypeCustom" value="custom">Custom: </input>
+					<form action=""  id="colorform">
+						<input type="radio" name="colortype" id="colortypeDynamic" value="dynamic" checked/>Dynamic</input><br/>
+						<input type="radio" name="colortype" id="colortypeCustom" value="custom"/>Custom: </input>
 						<input type="text" id="colorMin" size="4" disabled/>-<input type="text" id="colorMax" size="4" disabled/><br/>
 						<input type="submit" id="colorizeSubmit" value="Colorize"/>
 						<span id="colorErrorMsg" class="error"></span>
@@ -156,8 +176,10 @@ $(function() {
 						<input id="filterbutton" type="submit" value="Filter" size="10"/><br/>
 					</form>
 				</div>
+				<br/>
 				<div id="names"></div>
-<span id="settingslink">Your settings</span>  {% if settingsmessage %}<span style="color:red;" id="settingmessage">{{ settingsmessage }}</span>{%endif%}<br/>
+				<br/>
+<span id="settingslink">Your settings</span>  {%if settingsmessage%}<span style="color:red;" id="settingmessage">{{ settingsmessage }}</span>{%endif%}<br/>
 				<div id="settings">
 					<form id="settingsform" action="savesettings" method="post">
 						{% csrf_token %}

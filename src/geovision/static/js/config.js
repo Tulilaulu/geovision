@@ -23,71 +23,82 @@ var busy = false;
 var defaultsettings = {
 		animationsettings:
 			{duration: 1000,
-			type: "fade:seq",
-			transition: 'linear'
-			},
+			transition: 'linear',
+			subtype: 'EaseIn',
+			type:"fade:con"},
 		settings:
 			{canvaswidth: 600,
 			canvasheight: 600}
 };
+var w = 0;
+var h = 0;
+/*
+		if (settings == undefined) settings = defaultsettings;
+		if (settings.settings == undefined) settings.settings = defaultsettings.settings;
+		if (settings.animationsettings == undefined) settings.animationsettings = defaultsettings.animationsettings;
+		if (settings.settings.canvaswidth!=undefined){
+			w = parseInt(settings.settings.canvaswidth)
+		}
+		else {
+			w = defaultsettings.settings.canvaswidth
+		}
+		if (settings.settings.canvasheight!=undefined){
+			h = parseInt(settings.settings.canvasheight)
+		}
+		else {
+			h = defaultsettings.settings.canvaswidth
+		}
+		if (settings.animationsettings.duration!=undefined){
+			d = parseInt(settings.animationsettings.duration)
+		}
+		else {
+			d = defaultsettings.animationsettings.duration
+		}
+		if (settings.animationsettings.transition!=undefined){
+			t = settings.animationsettings.transition
+		}
+		else {
+			t = defaultsettings.animationsettings.transition
+		}
+		t = eval(t);
+		settings.animationsettings.transition = t; // XXX
+*/
+settings = $jit.util.merge(defaultsettings, settings);
+var numericFields = {settings: ['canvaswidth', 'canvasheight'], animationsettings: ['duration']}
 
-var anim_opts = $jit.util.merge(defaultsettings.animationsettings, settings.animationsettings);
-var opts = $jit.util.merge(defaultsettings.settings, settings.settings);
-
-if(anim_opts.transition){
-	var trans = $jit.Trans[anim_opts.transition];
+for (var key1 in numericFields)
+{
+	for (var i in numericFields[key1])
+	{
+		var key2 = numericFields[key1][i];
+		var num = parseInt(settings[key1][key2]);
+		settings[key1][key2] = isNaN(num) ? defaultsettings[key1][key2] : num;
+	}
 }
-
-//var trans = new Function(anim_opts.transition);
-//var w = 0;
-//var h = 0;
-//		if (settings == undefined) settings = defaultsettings;
-//		if (settings.settings == undefined) settings.settings = defaultsettings.settings;
-//		if (settings.animationsettings == undefined) settings.animationsettings = defaultsettings.animationsettings;
-//		if (settings.settings.canvaswidth!=undefined){
-//			w = parseInt(settings.settings.canvaswidth)
-//		}
-//		else {
-//			w = defaultsettings.settings.canvaswidth
-//		}
-//		if (settings.settings.canvasheight!=undefined){
-//			h = parseInt(settings.settings.canvasheight)
-//		}
-//		else {
-//			h = defaultsettings.settings.canvaswidth
-//		}
-//		if (settings.animationsettings.duration!=undefined){
-//			d = parseInt(settings.animationsettings.duration)
-//		}
-//		else {
-//			d = defaultsettings.animationsettings.duration
-//		}
-//		if (settings.animationsettings.transition!=undefined){
-//			t = settings.animationsettings.transition
-//		}
-//		else {
-//			t = defaultsettings.animationsettings.transition
-//		}
-//		t = eval(t);
-
+var type = $jit.Trans[settings.animationsettings.transition];
+if(!type)
+	type = $jit.Trans[defaultsettings.animationsettings.transition]; 
+var subtype = type[settings.animationsettings.subtype];
+if(subtype)
+	type = subtype;
+settings.animationsettings.transition = type;
 var Config = 
 {
 		//Where to append the visualization
 		injectInto: 'infovis',
 		//set canvas size
-		width: opts.canvaswidth,
-		height: opts.canvasheight,
+		width: settings.settings.canvaswidth,
+		height:settings.settings.canvasheight,
 		//Optional: create a background canvas that plots
 		//concentric circles.
 		background: { CanvasStyles: { strokeStyle: '#555' } },
 		//set distance for nodes on different levels
 		levelDistance: 100,
 		//set transformation speed
-		duration: anim_opts.duration,
+		duration: settings.animationsettings.duration,
 		fps: 40,
 		//set transformation style
-
-		transition: trans,
+		transition: settings.animationsettings.transition,
 		//Add navigation capabilities:
 		//zooming by scrolling and panning.
 		Navigation:
@@ -125,11 +136,14 @@ var Config =
 jQuery(function($) {
 /*! Function to open the graph-option-navigation and the alignment and other items with a nice animations.*/
 	/*setting stuff in css to the prefered size*/
-	$('#infovis').css('height', parseInt(opts.canvasheight));
-	$('#infovis').css('width', parseInt(opts.canvaswidth));
-	$('#center-container').css('width', parseInt(opts.canvaswidth));
-	$('#center-container').css('height', parseInt(opts.canvasheight));
-	$('#right-container').css('height', parseInt(opts.canvasheight));
-	$('#container').css('width', parseInt(opts.canvaswidth)+400);
-	$('#container').css('height', parseInt(opts.canvasheight));
+	$('#infovis').css('height', parseInt(settings.settings.canvasheight));
+	$('#infovis').css('width', parseInt(settings.settings.canvaswidth));
+	$('#center-container').css('width', parseInt(settings.settings.canvaswidth));
+	$('#center-container').css('height', parseInt(settings.settings.canvasheight));
+	$('#right-container').css('height', parseInt(settings.settings.canvasheight));
+	$('#container').css('width', parseInt(settings.settings.canvaswidth)+400);
+	$('#container').css('height', parseInt(settings.settings.canvasheight));
+	$('#deleteUntagged').click(function(e) { e.preventDefault(); rgraph.op.deleteUntagged(); });
+
 });
+
