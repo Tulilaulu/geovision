@@ -186,7 +186,12 @@ $(function() {
 						<input type="hidden" name="masterbitscorefilter" value="{{ bitscore }}"/>
 						<input id="filterbutton" type="submit" value="Filter"/><br/>
 					</form>
-				</div><br/>
+				</div>
+				<form action="" method="post" id="saveGraph">
+					Save current view as:<input type="text" size="10" id="savedGraphName" />
+					<input type="submit" value="Save"/> 
+					<span id="saveGraphStatus"></span>
+				</form>
 				<span id="settingslink">Your settings</span>  {%if settingsmessage%}<span style="color:red;" id="settingmessage">{{ settingsmessage }}</span>{%endif%}<br/>
 				<div id="settings">
 					<form id="settingsform" action="savesettings" method="post">
