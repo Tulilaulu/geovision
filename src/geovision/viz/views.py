@@ -52,7 +52,10 @@ def graphjson(request):
 		out = QueryToJSON(p['enzyme'], p['dbentry'], p['read'], float(p['evalue']), float(p['bitscore']), int(p['depth']), int(p['hits']), float(p['offset']), p['samples'])
 	except Exception as e:
 		out = json.dumps({'error_message': str(e)})
-	return HttpResponse(out, mimetype='text/plain')
+	if request.GET.get('debug', False): # if the GET parameter 'debug' is given, output html to show django debug toolbar
+		return HttpResponse('<html><body>' + repr(out) + '</body></html>')
+	else:
+		return HttpResponse(out, mimetype='text/plain')
 
 @login_required
 def graphrefresh(request): #make a new JSon, set defaults if needed
@@ -107,6 +110,7 @@ def graphrefresh(request): #make a new JSon, set defaults if needed
 		}, condition_dict))
 
 	elif condition_dict['enzyme'] != '':
+		result = lookup_enzyme(condition_dict['enzyme'])
 		if len(result) == 1:
 			condition_dict['enzyme'] = result[0] if isinstance(result[0], basestring) else result[0].ec_number
 		elif result == None:
