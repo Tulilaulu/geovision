@@ -178,8 +178,8 @@ $(function() {
 			</div>
 
 			<div id="right-container">
+				<a id="logoutbutton" href="logging_out">Logout</a>
 				<a id="helplink" target="_blank" href="show_help">Help</a>
-				<a id="logoutbutton" href="logging_out">Logout</a><br/>
 				<br/>
 					<button id="deleteUntagged">Delete all untagged</button><br/>
 					<button id="undo" disabled="disabled">Undo</button>
@@ -207,7 +207,7 @@ $(function() {
 				</div>
 				<br/>
 				<form action="/" method="post" id="saveGraph">
-					<strong>Save</strong> current view as: <input type="text" size="10" id="savedGraphName" maxlength="30"/>
+					<strong>Save</strong> current view as: <br/><input type="text" size="10" id="savedGraphName" maxlength="30"/>
 					<input type="submit" value="Save"/> 
 					<span id="saveGraphStatus"></span>
 				</form>
@@ -248,7 +248,7 @@ $(function() {
 						<input id="savesettings" name="savesettings" type="submit" value="Save your settings" style="margin-bottom:4px;"/><br/>
 					</form>
 					<form id="defaultsettingsForm" method="post" action="/">
-						{{ csrf_token }}
+						{% csrf_token %}
 						<input type="hidden" name="defaultsettings" value="true"/>
 						<input id="defaultsettings" name="defaultsettings" type="submit" value="Switch to defaults"/>
 					</form>

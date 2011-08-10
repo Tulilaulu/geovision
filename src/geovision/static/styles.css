@@ -41,12 +41,14 @@ div#help{
 }
 #help ul{
 	margin-left: 0px;
-	padding-left: 25px;
-	list-style-type: circle;
+	padding-left: 30px;
+	font-size: 14px;
+}
+#help li{
+	list-style: circle;
 }
 #help p{
-	font-size: 10px;
-
+	font-size: 14px;
 }
 div#register{
     width:400px;
@@ -110,38 +112,6 @@ A:visited {color:#0C1F02; text-decoration:none;}
 A:active {color:#0C1F02; text-decoration:none;}
 A:hover {color:#08C444; text-decoration:underline;}
 
-/* NOT IN USE
-div#staticnavi{
-    z-index: 1;
-    width:100%;
-    /*background-color:#ACC2B3;*/
-    /*margin:0px 0px 0px 10px;
-    padding:0px;
-}
-#staticnavi ul{
-    list-style: none;
-    padding: 0px;
-    margin: 0px;
-}
-#staticnavi li{
-    float: left;
-    padding: 3px;
-    background-color:#7EC294;
-    border: 2px solid #265434;
-    margin-right:4px;
-}
-#staticnavi li a {
-    height: 18px;
-    line-height: 18px;
-    float: left;
-    width: 50px;
-    display: block;
-    text-decoration: none;
-    text-align: center;
-}
-li#last{
-    float:right;
-} */
 div#graphnavi{
     position: fixed;
     top: 0px;
@@ -228,9 +198,9 @@ span#load{
 }
 a#helplink{
 	padding: 5px;
-	color:gray;
+	color:#4A4A4A;
 	float:right;
-	border: 2px #AAAAAA solid;
+	border: 2px #49914A solid;
 	background-color: #F2F2F2;
 	margin-right: 5px;
 	margin-top: 10px;
@@ -238,6 +208,10 @@ a#helplink{
 span#settingslink{
 	text-decoration: underline;
 	cursor: pointer;
+	padding: 2px;
+	color:#4A4A4A;
+	border: 1px #8FA191 solid;
+	background-color: #F2F2F2;
 }
 span#sampleslink{
 	text-decoration: underline;
@@ -248,11 +222,11 @@ div#settings{
 }
 a#logoutbutton{
 	padding: 5px;
-	color:gray;
+	color:#4A4A4A;
 	float:right;
-	border: 2px #AAAAAA solid;
+	border: 2px #A82727 solid;
 	background-color: #F2F2F2;
-	margin-right: 15px;
+	margin-right: 12px;
 	margin-top: 10px;
 }
 p#navierror {
