@@ -1,0 +1,254 @@
+/* This document has passed http://jigsaw.w3.org/css-validator/*/
+
+body, html {
+    background-color: #CBD6CF;
+    height: 100%;
+	font-family: Arial;
+}
+div#loader{
+    position:absolute;
+    top:0px;
+    left:0px;
+    z-index:100;
+    background-color: #ACC2B3;
+    width:100%;
+    height:60%;
+    text-align: center;
+    padding-top: 20%;
+}
+div.greenbox{
+    position:relative;
+    background-color:#ACC2B3;
+    border: solid 3px #265434;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top:60px;
+    padding:25px;
+    color:#0C1F02;
+    font-family:Arial;
+    text-align:center;
+}
+div#login{
+    width:230px;
+    height:100px;
+}
+div#help{
+    width:600px;
+	text-align: left;
+	margin-top:15px;
+	margin-bottom: 15px;
+	padding-bottom: 30px;
+}
+#help ul{
+	margin-left: 0px;
+	padding-left: 30px;
+	font-size: 14px;
+}
+#help li{
+	list-style: circle;
+}
+#help p{
+	font-size: 14px;
+}
+div#register{
+    width:400px;
+}
+#register p{
+    margin:5px;
+}
+#login h2{
+    font-size:20px;
+    margin-bottom:5px;
+}
+a#register{
+    position:absolute;
+    top:126px;
+    left:10px;
+}
+table#registerform{
+    margin:auto;
+}
+input#registerbutton{
+    margin-top: 10px;
+}
+a#back{
+    float:left;
+}
+a#about{
+    position:absolute;
+    top:126px;
+    left:226px;
+}
+div.error{
+    font-family: Arial;
+    margin-top:10px;
+    font-weight: bold;
+    color:#B80000;
+    margin-left:auto;
+    margin-right:auto;
+    text-align: center;
+    width: 400px;
+    z-index:20;
+    position:relative;
+}
+
+
+/* Easy Clearing on - http://www.positioniseverything.net/easyclearing.html */
+    .clearafter:after {
+      content: '[DO NOT LEAVE IT IS NOT REAL]';
+      display: block;
+      height: 0;
+      clear: both;
+      visibility: hidden;
+    }
+    /*\*/
+    * html .clearafter {
+      height: 1%;
+    }
+    /* */
+    /* Easy Clearing off */
+A:link {color:#0C1F02; text-decoration:none;}
+A:visited {color:#0C1F02; text-decoration:none;}
+A:active {color:#0C1F02; text-decoration:none;}
+A:hover {color:#08C444; text-decoration:underline;}
+
+div#graphnavi{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    padding-top: 20px;
+    z-index: 10;
+    width:7px;
+    height:100%;
+	text-align: center;
+    background-image: url(images/navitausta.png);
+	color: white;
+}
+div#navicontainer{
+    display: none;
+}
+#graphnavi table{
+	margin-left: 10px;
+}
+div#graphnavi #optiontag {
+    position: fixed;
+    top: 30px;
+    left: 7px;
+    display: block;
+}
+#graphnavi td{
+	padding: 5px;
+	vertical-align: middle;
+	text-align: right;
+}
+#graphnavi td.center{
+	text-align: center;
+}
+div#close{
+    float:right;
+    font-size:20px;
+    cursor: pointer;
+}
+.submitForm{
+	cursor: pointer;
+}
+div.alignment{
+	font-family: Courier, Consolas, 'Andale Mono', 'Everson Mono', Fixedsys, Hyperfont, Inconsolata, 'Lucida Console', Monaco, 'Pro Font';/*must be a monospace font for this to work*/
+	background-color: #DDEDE3;
+	font-size: 16px;
+	position: relative;
+	border: 2px solid #265434;
+	display:none;
+	padding:5px 15px 5px 5px;
+}
+span.alignmentpart{
+	background-color: #DDEDE3;
+	display:inline-block;
+	white-space: pre;
+	margin-bottom: 8px;
+}
+.alignment span.alignsimilarity{
+	background-color: #FF636E;
+}
+div#closealign{
+	text-align: right;
+	clear:both;
+	font-size: 11px;
+	cursor: pointer;
+}
+span#filtertext{
+	font-weight: bold;
+}
+div#filter{
+	text-align: left;
+}
+#filtererror{
+	color: red;
+}
+span#load{
+	position: absolute;
+	top:0px;
+	left:0px;
+	z-index:100;
+	width:100%;
+	text-align: center;
+	color:red;
+	background-color: silver;
+	font-weight: bold;
+}
+a#helplink{
+	padding: 5px;
+	color:#4A4A4A;
+	float:right;
+	border: 2px #49914A solid;
+	background-color: #F2F2F2;
+	margin-right: 5px;
+	margin-top: 10px;
+}
+span#settingslink{
+	text-decoration: underline;
+	cursor: pointer;
+	padding: 2px;
+	color:#4A4A4A;
+	border: 1px #8FA191 solid;
+	background-color: #F2F2F2;
+}
+span#sampleslink{
+	text-decoration: underline;
+	cursor: pointer;
+}
+div#settings{
+	display:none;
+}
+a#logoutbutton{
+	padding: 5px;
+	color:#4A4A4A;
+	float:right;
+	border: 2px #A82727 solid;
+	background-color: #F2F2F2;
+	margin-right: 12px;
+	margin-top: 10px;
+}
+p#navierror {
+	margin: 15px;
+	color: #B80000;
+}
+A.load:link {color:#FFFFFF; text-decoration:none;}
+A.load:visited {color:#FFFFFF; text-decoration:none;}
+A.load:active {color:#FFFFFF; text-decoration:none;}
+A.load:hover {color:#FFFFFF; text-decoration:underline;}
+div.view{
+	border: 1px #BBBBBB solid;
+	margin: 2px;
+}
+div#samples{
+	display: none;
+	text-align: center;
+}
+div#samplelist{
+	text-align: left;
+	margin-left:35%;
+}
+#undo{
+	margin-bottom: 5px;
+}
