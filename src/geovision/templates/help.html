@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+    {% block additional_title %}- Login{% endblock %}
+    {% block content %}
+    <div  class="greenbox" id="help">
+        <h2>Geovision - Help</h2><br/>
+		<p><strong>Help topics:</strong></p>
+		<ul>
+			<li><a href="#login">Logging in</a></li>
+			<li><a href="#logout">Logging out</a></li>
+			<li><a href="#newgraph">Getting a new graph</a></li>
+			<li><a href="#savedviews">Saved views</a></li>
+			<li><a href="#navigating">Navigating the graph</a></li>
+			<li><a href="#tooltips">Tooltips</a></li>
+			<li><a href="#tagging">Tagging the graph</a></li>
+			<li><a href="#tagoptions">Tagging options</a></li>
+			<li><a href="#undo">Undoing changes</a></li>
+			<li><a href="#info">Extra info and other databases</a></li>
+			<li><a href="#colors">Colors of the edges</a></li>
+			<li><a href="#alignments">Alignments</a></li>
+			<li><a href="#settings">Settings</a></li>
+		</ul>
+		<br/><br/>
+		<p id="login"><strong>Logging in</strong></p><br/>
+        <p>
+            To log in, input the username and password that you entered during registration.
+			Because the system is only accessible to people authorised to use it,
+			you must wait for your account to be activated by the superuser.
+			If you get an error saying your account is not active,
+			please contact the current admin (Esa Pitkänen). Once you are succesfully logged in,
+			you will be directed to the graph-page.
+        </p><br/>
+		<p id="logout"><strong>Logging out</strong></p><br/>
+        <p>
+            After ending your work session, remember to log out of the system for security reasons. 
+			You can save your work so you can return to it the next time you log in (for this see <a href="#savedviews">saved views</a>). 
+			Logging out is done by clicking on the 'Logout' button in the upper right corner of the screen. This will guide you back to the login page.
+        </p><br/>
+		<p id="newgraph"><strong>Getting a new graph</strong></p><br/>
+		<p>
+			To get a graph, take your mouse to the options
+			tag on the left side of the screen and a form will open up.
+			Input some values and click the button under them to get a graph with those values.<br/>
+			The values explained:<br/></p>
+			<ul>
+				<li>Enzyme: EC-number of the enzyme you want to search for.
+					You can also input the name and the system will autocomplete it for you.</li>
+				<li>Read id: ID-number of the specific read you want to search for.</li>
+				<li>DB entry id: ID-number of the specific database entry you want to search for.</li>
+				<li>Minimum bitscore: A bitscore limit. Nodes with bitscores under this will not be taken into account. </li>
+				<li>Minimum e-value: A e-value limit. Nodes with e-values under this will not be taken into account. </li>
+				<li>Depth: The initial depth of the graph, meaning how many circles of nodes will initially be drawn.</li>
+				<li>Hits per node: How many edges per node will initially be drawn. The ones that will be drawn will be the best ones of each node.</li>
+			</ul>
+		<p>You can also select which samples to use in getting results. The default (none selected) means all of the will be used.
+			If you would prefer to use only the samples of your chosing, click on their checkboxes before clicking 'refresh page'.
+		</p><br/>
+		<p id="savedviews"><strong>Saved views</strong></p><br/>
+		<p>
+			You can save a graph by inputting a name in the box on the right hand side of the
+			screen that says 'save current view as' and clicking the save button.
+			The graph will then be saved for later viewing on your account. To view a graph you have saved
+			click the 'Load' link under the name of the view you want to see. You can also delete a view or
+			export it as a JSON file. For these there are links next to the loading link.
+		</p><br/>
+		<p id="navigating"><strong>Navigating the graph</strong></p><br/>
+		<p>
+			Once you have a graph open, you can navigate it by clicking on nodes.
+			To open connections from a node, simply click on it. If connections are already open, clicking
+			will show more of them. Allmost all other functions can be accessed from the menu which opens
+			when an object is clicked with the right mouse button. The menu shows actions that are available
+			for that specific object. For edges it shows only alignments (exept for enzyme edges), but for nodes it shows many different functions.
+			Every node also has an option to center that node. Using this will make traversal in the graph easier and it also effects the tagging of the nodes (see <a href="#tagging">tagging the graph</a>).
+			Also, to make viewing the graph easier <strong>different types of nodes</strong> have been colorcoded for your convenience.
+			Enzyme nodes are blue, database entries are green and reads are red.
+		</p><br/>
+		<p id="tooltips"><strong>Tooltips</strong></p><br/>
+		<p>
+			The boxes that open next to the mouse, when the mouse is over an edge or node are called tooltips.
+			They display some usefull information conserning the element they are atached to. When hovering over an edge
+			you can see the IDs of the two elements it connects and the bitscore and the e-value of the edge.
+			Over any type of node, you can see the number of hidden connections that are not displayed in the graph. This only takes into account connections that are over the bitscore and/or e-value limits you used when getting the graph.
+			When hovering over an enzyme node you can see its ec-number and the first of its names that are listed in the database
+			(for displaying more names, see <a href="#info">Extra info</a>). When hovering over an database entry, you can see it's ID, what database it's from and it's name and when hovering
+			over a read node, you can see it's ID and other related info.
+		</p><br/>
+		<p id="tagging"><strong>Tagging the graph</strong></p><br/>
+		<p>
+			Tagging the graph is a feature made to make traversing and viewing the graph easier. A node can be tagged by selecting 'tag/untag node' from the
+			rightclick menu. The same command also untags a tagged node. When a node is tagged, its center turns white.
+			Tagging a node will also tag a path to the root node, which is the node at the center of the graph. Untagging a node will also cause similar check to be made, and
+			all nodes which no longer have a tagged path to the root will also be untagged. 
+			This is done because the style of graph visualization assumes every node has a path to root (graph is connected).
+		</p><br/>
+		<p id="tagoptions"><strong>Tagging options</strong></p><br/>
+		<p>
+		<ul id="taghelplist">
+			<li><i>Tag/Untag Node</i> - Tags or untags a single node. When tagging it will also tag a path to root if no path exists. 
+				Tagged path is the one with best edge bitscores starting from tagged node.
+				When untagging, all nodes in untagged node's subgraph without a path to root will also be untagged. More about the two untag options below.</li>
+			<li><i>Tag Children</i> - Tags a single node and it's immediate children. Please note that the children of a node may not be immediately obvious 
+				as some might be on the other side of the graph. Node's children are nodes one level futher from the root with an edge to this node.<br/>
+				<img src="{{ STATIC_URL }}/images/1.png"/>
+				Before tagging node gl|1857124<br/>
+				<img src="{{ STATIC_URL }}/images/2-c.png"/>
+				Selecting the option<br/>
+				<img src="{{ STATIC_URL }}/images/3-c.png"/>
+				After tagging, note that some of the tagged nodes are on the other side of the graph. Tagging has also tagged a path to root (in this case only root, which is FR123406).<br/>
+				</li>
+			<li><i>Tag Subgraph</i> - Tags a single node and it's whole subgraph. Please note that not all subgraph nodes may be immediately obvious.<br/>
+				<img src="{{ STATIC_URL }}/images/1.png"/>
+				Before tagging node gl|1857124<br/>
+				<img src="{{ STATIC_URL }}/images/2-s.png"/>
+				Selecting the option<br/>
+				<img src="{{ STATIC_URL }}/images/3-s.png"/>
+				After tagging, note that some of the tagged nodes are on the other side of the graph. Tagging has also tagged a path to root (in this case only root, which is FR123406).<br/>
+				</li>
+			<li><i>Untag and Untag Subgraph</i> - Since untag operation will also untag all nodes left without a path to root, it can in some cases do exactly the same as untag subgraph. 
+				There is a difference in some situations, as shown by the images below. After untag, only subgraph nodes left without path to root will be untagged. With untag subgraph, all subgraph
+				nodes will be untagged. Untagging the whole graph is as easy as untagging the root node, as all other nodes will then be left without a tagged path to root.
+				<img src="{{ STATIC_URL }}/images/untag-1.png"/>
+				Starting point
+				<img src="{{ STATIC_URL }}/images/untag-2.png"/>
+				Nodes selected after untag operation on node FR321869.
+				<img src="{{ STATIC_URL }}/images/untag-3.png"/>
+				Nodes selected after untag subgraph operation on node FR321869.
+			</li>
+		</ul>
+		</p>
+			<br/>
+		<p id="undo"><strong>Undoing changes</strong></p><br/>
+		<p>
+			If you change the graph in a way you are not happy with, click on the undo button on the right side of the graph.
+		</p><br/>
+		<p id="info"><strong>Extra info and other databases</strong></p><br/>
+		<p>
+			Many of the nodes have links to other databases. You can access these links by rightclicking a node.
+			The nodes always have a straight link to their entry in the external database that they can be found in,
+			meaning that data from silva-database will have a link to silva ect. Enzyme nodes have more info available than
+			other nodes. When right clicking on an enzyme node, you have the options to display it's info from BRENDA or KEGG.
+			Also, clicking on an enzyme node, or clicking on the option 'more info' from the rightclick menu (if you don't want
+			to open more connections from the enzyme) will open a list of the enzymes names and a list of pathways (from KEGG)
+			which display the enzyme on the right side of the screen. For other additional info also see <a href="tooltips">tooltips</a>.
+		</p><br/>
+		<p id="colors"><strong>Colors of the edges</strong></p><br/>
+		<p>
+			The coloring of the edges depends on the bitscore of the edge. You can change the way the edges are colored by changing the settings under
+			the 'Coloring' text on the right side of the graph. Dynamic coloring means that the edge with the highest visible bitscore is green, the lowest is red
+			and edges in between are calculated colors according to how close they are from the highest and lowest. You can also set the values manually by selecting the 'Custom' option.
+			All edges under the value you input into the first box will be colored red and all over the value in the second box will be green. Edges between these will get values according
+			to how far they are from the red and green values.
+		</p><br/>
+		<p id="alignments"><strong>Alignments</strong></p><br/>
+		<p>
+			You can see the alignment of two nodes by right clicking on the edge between them and selecting show alignment.
+			The alignment will open under the graph. You can close the alignment by clicking on the close link on the upper right corner of the alignment box.
+			The parts of the alignment that are colored red are the parts that are similar in both alignments, other parts dont have a background color. The
+			upper part of the alignment is always the database sequence and the downer is the read sequence. Multiple alignments can be open at the same time
+			and for regognition purposes the top of the alignment box always states the IDs of the elements it shows.
+		</p><br/>
+		<p id="settings"><strong>Settings</strong></p><br/>
+		<p>
+			You can change your settings by clicking the 'Settings' link on the right side of the graph. It will open the settings which are saved on your account.
+			Canvas size changes the size of the black graph area. 'Animations' has the option to turn the graph animations on or off. Animation speed states how fast the
+			graphs animations will go. Animation type and animation subtype will affect the look of the animations (they are only cosmetic changes).
+			To save your settings click on the 'Save settings' button. You can also restore the default settings by clicking on the 'Restore defaults' button.
+		</p><br/>
+
+    </div>
+    {% endblock %}
