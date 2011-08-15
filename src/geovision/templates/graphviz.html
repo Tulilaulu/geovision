@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block additional_head %}
-<!--It seems it has to be before anything else-->
+<!--Importing user settings to javascript, It seems it has to be before anything else-->
 {%autoescape off%}
 <script type="text/javascript">
 var settings = 
@@ -17,7 +17,7 @@ var query = { read: "{{ read }}", dbentry: "{{ dbentry }}", enzyme: "{{ enzyme }
 		query.samples.push('{{ sample }}');
 {% endfor %}
 {% if view_id %}
-query.view_id = {{ view_id }};
+		query.view_id = {{ view_id }};
 {% endif %}
 </script>
 {% endautoescape %}
@@ -40,7 +40,7 @@ query.view_id = {{ view_id }};
 <script type="text/javascript" src="{{ STATIC_URL }}js/moreinfo.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/styles.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/tips.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}graphviz.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/graphviz.js"></script>
 
 <script type="text/javascript">
 $(function() {
@@ -62,10 +62,10 @@ $(function() {
 		<strong>Get a new graph:</strong>
 	</td></tr>
 	{% if error_message  %}
-	<tr><td>
-		<script type="text/javascript">openSearch();</script>
-		<p id="navierror">{{ error_message }}</p>
-	</td></tr>
+		<tr><td>
+			<script type="text/javascript">openSearch();</script>
+			<p id="navierror">{{ error_message }}</p>
+		</td></tr>
 	{% else %}
 	{% endif %}
 	<tr><td colspan="2" class="center">
@@ -75,10 +75,10 @@ $(function() {
 	</td><td>
 		<input size="10" type="text" name="enzyme" id="ec" value="{{ enzyme }}"/>
 		{% if enzyme_list %}
-		</td></tr><tr><td colspan="2" class="center">Multiple enzymes matched, pick one:
-		{% for e in enzyme_list %}
-		</td></tr><tr><td colspan="2" class="center"><p class="submitForm">{{ e.enzyme_name }} ({{ e.ec_number }})</p>
-		{% endfor %}
+			</td></tr><tr><td colspan="2" class="center">Multiple enzymes matched, pick one:
+			{% for e in enzyme_list %}
+				</td></tr><tr><td colspan="2" class="center"><p class="submitForm">{{ e.enzyme_name }} ({{ e.ec_number }})</p>
+			{% endfor %}
 		{% endif %}
 	</td></tr><tr><td>
 		<label>Read id:</label>
@@ -112,7 +112,11 @@ $(function() {
 			<label>Samples:</label><br/>
 			<div id="samplelist">
 			{% for sample in all_samples %}
-				<input type="checkbox" name="samples" value="{{ sample }}" /> {{ sample }}<br/>
+				{% if sample in samples %}
+					<input type="checkbox" name="samples" value="{{ sample }}" checked="checked"/> {{ sample }}<br/>
+				{% else %}
+					<input type="checkbox" name="samples" value="{{ sample }}" /> {{ sample }}<br/>
+				{% endif %}
 			{% endfor %}
 			</div>
 		</div>
@@ -128,7 +132,7 @@ $(function() {
 		</div>
 		<script type="text/javascript">
 		{% for view in saved_views %}
-		addSavedViewToList('{{ view.id }}', '{{ view.name }}');
+			addSavedViewToList('{{ view.id }}', '{{ view.name }}');
 		{% endfor %}
 		</script>
 	</td></tr>
@@ -156,8 +160,7 @@ $(function() {
 			 <li id="n_more">More connections</li>
              <li id="e_align">Show Alignment</li>
              <li id="n_tag">Tag/Untag Node</li>
-             <li id="n_tagparents">Tag Parents</li>
-             <li id="n_tagsubnodes">Tag Subnodes</li>
+             <li id="n_tagsubnodes">Tag Children</li>
              <li id="n_tagsubgraph">Tag Subgraph</li>
              <li id="n_untagsubgraph">Untag Subgraph</li>
 			 <li id="n_en_names">Show info</li>
@@ -178,8 +181,8 @@ $(function() {
 			</div>
 
 			<div id="right-container">
-				<a id="helplink" href="show_help">Help</a>
-				<a id="logoutbutton" href="logging_out">Logout</a><br/>
+				<a id="logoutbutton" href="logging_out">Logout</a>
+				<a id="helplink" target="_blank" href="show_help">Help</a>
 				<br/>
 					<button id="deleteUntagged">Delete all untagged</button><br/>
 					<button id="undo" disabled="disabled">Undo</button>
@@ -206,7 +209,7 @@ $(function() {
 				</div>
 				<br/>
 				<form action="/" method="post" id="saveGraph">
-					<strong>Save</strong> current view as: <input type="text" size="10" id="savedGraphName" maxlength="30"/>
+					<strong>Save</strong> current view as: <br/><input type="text" size="10" id="savedGraphName" maxlength="30"/>
 					<input type="submit" value="Save"/> 
 					<span id="saveGraphStatus"></span>
 				</form>
@@ -237,7 +240,7 @@ $(function() {
 						  <option value="Elastic">Elastic</option>
 						</select><br/>
 						<label>Animation subtype:<br/>
-						Note: does not effect linear transitions</label><br/>
+						Note: does not affect linear transitions</label><br/>
 						<select name="animationsubtype" id="animationsubtype">
 							<option value="easeIn">Ease in</option>
 							<option value="easeOut">Ease out</option>
@@ -247,7 +250,7 @@ $(function() {
 						<input id="savesettings" name="savesettings" type="submit" value="Save your settings" style="margin-bottom:4px;"/><br/>
 					</form>
 					<form id="defaultsettingsForm" method="post" action="/">
-						{{ csrf_token }}
+						{% csrf_token %}
 						<input type="hidden" name="defaultsettings" value="true"/>
 						<input id="defaultsettings" name="defaultsettings" type="submit" value="Switch to defaults"/>
 					</form>

@@ -1,4 +1,8 @@
-/* config.js - Initialize all globals and the config dict */
+/** config.js - Initializes all globals and the config dict. Sets default
+ * values for settings. Detailed explanation of all the configurations available
+ * e.g. for animations can be found at the JIT documents page
+ * http://thejit.org/static/v20/Docs/.
+ */
 
 var rgraph;
 var RGraph = $jit.RGraph;
@@ -14,6 +18,8 @@ var defaultsettings = {
 			canvasheight: 600}
 };
 settings = $jit.util.merge(defaultsettings, settings);
+
+/* Perform parameter validation on the user settings. Replace incorrectly formatted number fields with defaults */
 var numericFields = {settings: ['canvaswidth', 'canvasheight'], animationsettings: ['duration']}
 
 for (var key1 in numericFields)
@@ -25,6 +31,8 @@ for (var key1 in numericFields)
 		settings[key1][key2] = isNaN(num) ? defaultsettings[key1][key2] : num;
 	}
 }
+
+/* Sets the transition function based on the strings in the settings dict*/
 settings.animationsettings.transitionname = settings.animationsettings.transition;
 var type = $jit.Trans[settings.animationsettings.transition];
 if(!type)
@@ -36,6 +44,7 @@ settings.animationsettings.transition = type;
 settings.animationsettings.onComplete = function() { setBusy(false); };
 settings.animationsettings.onMerge = colorEdges;
 
+//set initial number of concentric circles
 var max_level = 6;
 
 var Config = 
@@ -71,7 +80,7 @@ var Config =
 			color: '#ff0000',
 			alpha: 0.6,
 			dim: 7.0,
-			angularWidth: 1,
+			angularWidth: 20,
 			span:1,
 			type: 'customCircle',
 			CanvasStyles: {}
@@ -82,13 +91,12 @@ var Config =
 			color: '#888800',
 			alpha: 0.6,
 			type: 'customArrow',
-
 			lineWidth:1.5,
 			dim: 10,
 		}
 };
+/** Set correct values for the settings widgets, also bind some events */
 jQuery(function($) {
-	/*setting stuff in css to the preferred size*/
 	$('#infovis').css('height', parseInt(settings.settings.canvasheight));
 	$('#infovis').css('width', parseInt(settings.settings.canvaswidth));
 	$('#center-container').css('width', parseInt(settings.settings.canvaswidth));
@@ -96,7 +104,6 @@ jQuery(function($) {
 	$('#right-container').css('height', parseInt(settings.settings.canvasheight));
 	$('#container').css('width', parseInt(settings.settings.canvaswidth)+400);
 	$('#container').css('height', parseInt(settings.settings.canvasheight));
-	$('#deleteUntagged').click(function(e) { e.preventDefault(); saveUndoState(); rgraph.op.deleteUntagged(); });
 	$('#canvas_x').val(settings.settings.canvaswidth);
 	$('#canvas_y').val(settings.settings.canvasheight);
 	if (settings.animationsettings.type == 'replot'){
@@ -107,5 +114,6 @@ jQuery(function($) {
 		$('#animationtype').val(settings.animationsettings.transitionname);
 	}
 	$('#animationsubtype').val(settings.animationsettings.subtype);
-});
 
+	$('#deleteUntagged').click(function(e) { e.preventDefault(); saveUndoState(); rgraph.op.deleteUntagged(); });
+});

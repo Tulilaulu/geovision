@@ -1,4 +1,9 @@
-/*Function for showing the alignment of the read and the db-entry*/
+/**
+ * Function for showing the alignment of the read and the db-entry and coloring it so that you can easily see which parts match
+ * @param thisid the id of the edge for which the alignment is shown
+ * @param nodeFrom the id of the node on the other side of the edge, only used for showing to the user so it's easier to distinguish alignments from eachother
+ * @param nodeTo the id of the node on the other side of the edge, only used for showing to the user so it's easier to distinguish alignments from eachother
+ */
 function alignmentfunction(thisid, nodeFrom, nodeTo) {
 	$.getJSON('/show_alignment', {id: thisid}, function (data) { /*get the json with the data*/
 		if(data == null){
@@ -27,11 +32,15 @@ function alignmentfunction(thisid, nodeFrom, nodeTo) {
 	});
 	return false;
 }
-/*when the close button appears, it's se to work*/
+/**when the close button appears, it's set to work*/
 $('#closealign').live('click', function() {
 	closealignment(this);
 });
-/*Function to close the div-element showing the alignment*/
+
+/**
+ * Function to close and delete the div-element showing the alignment
+ * @param button the DOM-element which was clicked to start this function
+ */
 function closealignment (button) {
 		button = $(button);
 		var alignment = button.parent();
@@ -41,7 +50,9 @@ function closealignment (button) {
 		$(alignment).slideUp();
 }
 
-/* Function to list all names, reactions and pathways related to an enzyme in the right container */
+/** Function to list all names, reactions and pathways related to an enzyme in the right container.
+ * @param json the json to get info from
+ */
 function showEnzymeData (json){
 	enzymes = {};
 	rgraph.graph.eachNode(function(n) {
@@ -58,7 +69,8 @@ function showEnzymeData (json){
 		html += $.map(json.pathways, function(pw){
 			var pathwayEnzymes = $.grep(pw.enzymes, function(x) { return enzymes[x]; });
 			var colorUrl = escape($.map(pathwayEnzymes, function(ec) { return ec + "\t" + enzymes[ec].data.color + ',#000000'; }).join('/'));
-			return  '<a target="_blank" href="http://www.genome.jp/kegg-bin/show_pathway?map' + pw.id + '/' + colorUrl + '">' + pw.id + ': ' + pw.name + '</a><br/>'; }).join('');
+			return  '<a target="_blank" href="http://www.genome.jp/kegg-bin/show_pathway?map' + pw.id + '/' + colorUrl + '">' + pw.id + ': ' + pw.name + '</a><br/>';
+		}).join('');
 	}
 
 	names = json.names;
@@ -67,6 +79,7 @@ function showEnzymeData (json){
 	for (name in names){
 		html = html + names[name] + '<br/>';
 	}
-	$('#names').html(html); /*#names is replaced fully when this is called for a new node*/
+	//#names is replaced fully when this is called for a new node
+	$('#names').html(html); 
 	return;
  }

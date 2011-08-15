@@ -9,14 +9,7 @@ class Sample(models.Model):
 class ImportedData(models.Model):
 	type = models.CharField(max_length=8)
 	data = models.CharField(max_length=32)
-#
-#class Collection(models.Model):
-#	name = models.CharField(max_length=64)
-#	description = models.TextField()
-#	users = models.ManyToManyField(User, related_name='collections')
-#	samples = models.ManyToManyField(Sample, related_name='collections')
-#	owner = models.ForeignKey(User, related_name='own_collections')
-#
+
 class UserProfile(models.Model):
 	user = models.OneToOneField(User)
 	settings = models.TextField(blank=True)
@@ -28,8 +21,11 @@ class SavedView(models.Model):
 	query = models.TextField()
 
 def save_user_profile_pre_hook(sender, instance, **kwargs):
+		"""Make sure that staff status equals superuser status to simplify the admin ui."""
 		instance.is_superuser = instance.is_staff
+
 def save_user_profile_post_hook(sender, instance, created, **kwargs):
+		"""Make sure that UserProfiles are created for each user"""
 		obj, is_new = UserProfile.objects.get_or_create(user=instance)
 		if is_new:
 			obj.settings = {}

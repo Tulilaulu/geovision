@@ -1,5 +1,4 @@
 from django.db import models
-from geovision.userdb.models import Sample
 from meta.models import *
 
 class Read(models.Model):
@@ -66,11 +65,3 @@ class BlastEcs(models.Model):
 	db_entry = models.ForeignKey(DbEntry)
 	bitscore = models.FloatField()
 	error_value = models.FloatField()
-
-class Result(models.Model): # Query_seq_id Target_seq_id Evident_type E.C._number p_value Bit_score
-	read = models.CharField(max_length=64)
-	db_entry = models.CharField(max_length=32)
-	evident_type = models.CharField(max_length=2)
-	ec_number = models.CharField(max_length = 32)
-	error_value = models.FloatField()
-	bitscore = models.FloatField()

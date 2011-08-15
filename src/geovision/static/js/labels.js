@@ -1,3 +1,6 @@
+/** Label configurations for nodes.
+ */
+
 $.extend(Config, {
 		//Label styling is done via CSS!
 		Label:
@@ -19,6 +22,7 @@ $.extend(Config, {
 			style.display = '';
 			style.cursor = 'pointer';
 
+		// Positions the label a bit nicely than the default
 			var left = parseInt(style.left);
 			var w = domElement.offsetWidth;
 			style.left = (left - w / 2) + 'px';
