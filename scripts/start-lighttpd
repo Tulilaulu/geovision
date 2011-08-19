@@ -1,0 +1,8 @@
+#!/bin/bash
+cd `dirname $0`
+source inc/common.bash
+
+stop-lighttpd > /dev/null 2>&1
+statusecho "Starting your local lighttpd HTTP server"
+run-manage runfcgi socket=$HTTP_DIR/fastcgi.sock pidfile=$HTTP_DIR/django.pid
+lighttpd -f $HTTP_DIR/lighttpd.conf

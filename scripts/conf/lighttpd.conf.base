@@ -1,0 +1,42 @@
+# lighttpd.conf.base - a template file used to create $HTTP_DIR/lighttpd.conf by scripts/setup-lighttpd
+# There are several variables that are expanded during the setup-lighttpd script ! HTTP_DIR !, ! HTTP_PORT !, ! SOURCE_DIR ! (without spaces)
+server.modules              = (
+                                "mod_access",
+								"mod_rewrite",
+								"mod_fastcgi",
+                                "mod_accesslog" )
+server.document-root        = "!SOURCE_DIR!"
+server.errorlog             = "!HTTP_DIR!/error.log"
+accesslog.filename          = "!HTTP_DIR!/access.log"
+
+mimetype.assign             = (
+  ".css"          =>      "text/css",
+  ".html"         =>      "text/html",
+  ".htm"          =>      "text/html",
+  ".js"           =>      "text/javascript",
+  ".txt"          =>      "text/plain",
+  ".xml"          =>      "text/xml",
+  ".png"          =>      "image/png",
+  ".jpg"          =>      "image/jpeg",
+  ".gif"          =>      "image/gif",
+ )
+
+static-file.exclude-extensions = (".fcgi")
+
+server.port                = !HTTP_PORT!
+server.pid-file            = "!HTTP_DIR!/lighttpd.pid"
+
+fastcgi.server = (
+    "/geovision.fcgi" => (
+        "main" => (
+            "socket" => "!HTTP_DIR!/fastcgi.sock",
+            "check-local" => "disable",
+        )
+    ),
+)
+
+url.rewrite-once = (
+#	"^(/static/admin.*)$" => "/geovision.fcgi$1",
+    "^/(static(?!/admin/).*)$" => "$1", 
+	"^(/.*)$" => "/geovision.fcgi$1",
+)

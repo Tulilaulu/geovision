@@ -1,0 +1,2 @@
+#!/bin/bash
+$(`dirname $0`/inc/run-django get_psql_cmdline.py) "$@"
